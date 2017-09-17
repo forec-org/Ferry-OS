@@ -1,0 +1,13 @@
+{
+  "CPU": {
+    "CORE_NUM": 2,
+    "CPU_RATE": 1.0
+  },
+  "DISK": {
+    "BLOCK_SIZE": 512,
+    "DEFAULT_BLOCKS_PER_FILE": 4
+  },
+  "MEM": {
+    "DEFAULT_STACK_SIZE": 2048
+  }
+}

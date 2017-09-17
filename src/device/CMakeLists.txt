@@ -1,0 +1,5 @@
+add_subdirectory(fs)
+add_subdirectory(memory)
+add_subdirectory(printer)
+add_subdirectory(processor)
+add_subdirectory(timer)

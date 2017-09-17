@@ -5,4 +5,9 @@
 #ifndef SDOS_FS_H
 #define SDOS_FS_H
 
+
+class FS {
+
+};
+
 #endif //SDOS_FS_H

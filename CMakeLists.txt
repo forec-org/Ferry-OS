@@ -1,18 +1,19 @@
 cmake_minimum_required(VERSION 3.6)
+
 project(SDOS)
+message(STATUS "Project: Software Defined Operating System")
+message(STATUS "Project Directory: ${PROJECT_SOURCE_DIR}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_COMPILER "clang++")
+set(BUILD_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
+set(LIBRARY_OUTPUT_PATH ${BUILD_OUTPUT_PATH}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${BUILD_OUTPUT_PATH}/bin)
 
-set(SOURCE_FILES
-        main.cpp
-        device/fs/fs.h
-        device/memory/memory.h
-        device/printer/printer.h
-        device/processor/processor.h
-        device/timer/timer.h
-        os/interpreter/interpreter.h
-        os/monitor/monitor.h
-        os/scheduler/scheduler.h
-        os/oscore/oscore.h)
+find_package(Boost 1.65.1 COMPONENTS system REQUIRED)
 
-add_executable(sdos ${SOURCE_FILES})
+add_compile_options(-std=c++11)
+
+add_subdirectory(src)
+add_subdirectory(tests)

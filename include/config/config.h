@@ -6,33 +6,52 @@
 #define SDOS_CONFIG_H
 
 #include <string>
+#include "macro.h"
 
 class Config {
 private:
     std::string mConfigPath;
-    static bool mShowErrorLog;
     static Config *instance;
 
     explicit Config(const std::string& path);
     void loadDefault();
 public:
+    static bool mShowErrorLog;
     static Config *getInstance();
     static bool init(const std::string &path = "./config.json", const bool showErrorLog = false);
     bool reload();
+    bool check();
+    bool mValid;
 
     struct CPU {
-        int CORE_NUM;
-        double CPU_RATE;  // GHz
+        unsigned int CORE_NUM;
+        double CPU_RATE;             // GHz
     } CPU;
 
     struct DISK {
-        int BLOCK_SIZE;  // Byte
-        int DEFAULT_BLOCKS_PER_FILE;
+        unsigned int BLOCK_SIZE;              // Byte
+        struct BUFFER {
+            unsigned int DEFAULT_BLOCK;
+            unsigned int MAX_BLOCK;
+            unsigned int MIN_BLOCK;
+        } BUFFER;
+        unsigned int DEFAULT_BLOCKS_PER_FILE;
     } DISK;
 
     struct MEM {
-        int DEFAULT_STACK_SIZE;  // Byte
+        unsigned long DEFAULT_CAPACITY;        // Page
+        unsigned long DEFAULT_PROCESS_PAGE;    // Page
+        unsigned long DEFAULT_STACK_PAGE;      // Page
+        unsigned char DEFAULT_PAGE_BIT;
+        unsigned int DEFAULT_PAGE_SIZE;       // Byte
     } MEM;
+
+    struct OS {
+        struct MEM {
+            unsigned int DEFAULT_OS_USED_PAGE;  // Page
+        } MEM;
+        unsigned int BOOT_MEMORY_KB;            // KByte
+    } OS;
 };
 
 #endif //SDOS_CONFIG_H

@@ -10,3 +10,4 @@ link_directories(
 
 add_executable(sdos ${SRC_LIST})
 target_link_libraries(sdos config ${Boost_LIBRARIES})
+target_link_libraries(sdos memory)

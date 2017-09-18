@@ -5,9 +5,23 @@
   },
   "DISK": {
     "BLOCK_SIZE": 512,
+    "BUFFER": {
+      "DEFAULT_BLOCK": 2,
+      "MAX_BLOCK": 16,
+      "MIN_BLOCK": 0
+    },
     "DEFAULT_BLOCKS_PER_FILE": 4
   },
   "MEM": {
-    "DEFAULT_STACK_SIZE": 2048
+    "DEFAULT_CAPACITY": 1024,
+    "DEFAULT_PROCESS_PAGE": 16,
+    "DEFAULT_STACK_PAGE": 2,
+    "DEFAULT_PAGE_BIT": 10
+  },
+  "OS": {
+    "MEM": {
+      "DEFAULT_OS_USED_PAGE": 128
+    },
+    "BOOT_MEMORY_KB": 512
   }
 }

@@ -8,8 +8,6 @@
 #include <cstdio>
 #include <string>
 
-class FS;
-
 class Handler {
 private:
     struct BlockInfo {
@@ -18,16 +16,14 @@ private:
         BlockInfo * next;
     };
     BlockInfo * mBlockList;
-    FS * mParent;
     long mCurrentPos;
     long mBufferSize;
     long mUsedSize;
     char * mBuffer;
     std::string mPath;
-    FILE * mSeek;
 public:
-    explicit Handler(const std::string &path, FS *parent);
-    bool init(long basePos, char *buffer, long bufferSize);
+    explicit Handler(const std::string &path);
+    bool init(unsigned long bufferSize);
     bool reset();
     bool seek(long pos);
     long write(char *src, long size);

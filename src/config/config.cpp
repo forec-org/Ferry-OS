@@ -3,6 +3,7 @@
 //
 
 #include "config.h"
+#include "mmu.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <iostream>
@@ -22,10 +23,16 @@ bool Config::init(const std::string &path, const bool showErrorLog) {
     try {
         instance = new Config(path);
     } catch (std::bad_alloc& e) {
-        std::cerr << "Alloc error caught: " << e.what() << std::endl;
+        if (Config::mShowErrorLog)
+            std::cerr << "Alloc Error: " << e.what() << std::endl;
         return false;
     }
-    return instance != nullptr;
+    return instance != nullptr && instance->check();
+}
+
+bool Config::check() {
+    mValid = MMU::check();
+    return mValid;
 }
 
 Config::Config(const std::string &path) {
@@ -45,7 +52,7 @@ bool Config::reload() {
     std::ifstream configFileStream(mConfigPath.c_str(), std::ifstream::in | std::ifstream::binary);
     if (configFileStream.fail()) {
         if (Config::mShowErrorLog)
-            std::cerr << "Error happens when loading config file '" << mConfigPath << "'." << std::endl;
+            std::cerr << "Loading Config File Error: '" << mConfigPath << "'." << std::endl;
         return false;
     }
     boost::property_tree::ptree pt;
@@ -53,28 +60,42 @@ bool Config::reload() {
         boost::property_tree::read_json(configFileStream, pt);
     } catch (boost::property_tree::ptree_error &e) {
         if (Config::mShowErrorLog)
-            std::cerr << "Error happens when building JSON tree from config stream." << std::endl;
+            std::cerr << "Building JSON Tree Error: " << std::endl;
         return false;
     }
     try {
         boost::property_tree::ptree cpu = pt.get_child("CPU");
         boost::property_tree::ptree disk = pt.get_child("DISK");
         boost::property_tree::ptree mem = pt.get_child("MEM");
+        boost::property_tree::ptree os = pt.get_child("OS");
 
         /* CPU configuration */
-        CPU.CORE_NUM = cpu.get<int>("CORE_NUM");
+        CPU.CORE_NUM = cpu.get<unsigned int>("CORE_NUM");
         CPU.CPU_RATE = cpu.get<double>("CPU_RATE");
 
         /* DISK configuration */
-        DISK.BLOCK_SIZE = disk.get<int>("BLOCK_SIZE");
-        DISK.DEFAULT_BLOCKS_PER_FILE = disk.get<int>("DEFAULT_BLOCKS_PER_FILE");
+        DISK.BLOCK_SIZE = disk.get<unsigned int>("BLOCK_SIZE");
+        boost::property_tree::ptree disk_buffer = disk.get_child("BUFFER");
+        DISK.BUFFER.DEFAULT_BLOCK = disk_buffer.get<unsigned int>("DEFAULT_BLOCK");
+        DISK.BUFFER.MAX_BLOCK = disk_buffer.get<unsigned int>("MAX_BLOCK");
+        DISK.BUFFER.MIN_BLOCK = disk_buffer.get<unsigned int>("MIN_BLOCK");
+        DISK.DEFAULT_BLOCKS_PER_FILE = disk.get<unsigned int>("DEFAULT_BLOCKS_PER_FILE");
 
         /* MEM configuration */
-        MEM.DEFAULT_STACK_SIZE = mem.get<int>("DEFAULT_STACK_SIZE");
+        MEM.DEFAULT_CAPACITY = mem.get<unsigned long>("DEFAULT_CAPACITY");
+        MEM.DEFAULT_PROCESS_PAGE = mem.get<unsigned long>("DEFAULT_PROCESS_PAGE");
+        MEM.DEFAULT_STACK_PAGE = mem.get<unsigned long>("DEFAULT_STACK_PAGE");
+        MEM.DEFAULT_PAGE_BIT = mem.get<unsigned char>("DEFAULT_PAGE_BIT");
+        MEM.DEFAULT_PAGE_SIZE = (unsigned int)(1 << MEM.DEFAULT_PAGE_BIT);
+
+        /* OS configuration */
+        boost::property_tree::ptree os_mem = os.get_child("MEM");
+        OS.MEM.DEFAULT_OS_USED_PAGE = os_mem.get<unsigned int>("DEFAULT_OS_USED_PAGE");
+        OS.BOOT_MEMORY_KB = os.get<unsigned int>("BOOT_MEMORY_KB");
 
     } catch (boost::property_tree::ptree_error &e) {
         if (Config::mShowErrorLog)
-            std::cerr << "Error happens when parsing values from JSON tree: " << e.what() << "." << std::endl;
+            std::cerr << "Parsing JSON Tree Error: " << e.what() << "." << std::endl;
         return false;
     }
     return true;
@@ -86,9 +107,18 @@ bool Config::reload() {
  */
 
 void Config::loadDefault() {
-    CPU.CORE_NUM = 2;
-    CPU.CPU_RATE = 1.0;
-    DISK.BLOCK_SIZE = 512;
-    DISK.DEFAULT_BLOCKS_PER_FILE = 4;
-    MEM.DEFAULT_STACK_SIZE = 2048;
+    CPU.CORE_NUM = _CPU_CORE_NUM;
+    CPU.CPU_RATE = _CPU_CPU_RATE;
+    DISK.BLOCK_SIZE = _DISK_BLOCK_SIZE;
+    DISK.BUFFER.DEFAULT_BLOCK = _DISK_BUFFER_DEFAULT_BLOCK;
+    DISK.BUFFER.MAX_BLOCK = _DISK_BUFFER_MAX_BLOCK;
+    DISK.BUFFER.MIN_BLOCK = _DISK_BUFFER_MIN_BLOCK;
+    DISK.DEFAULT_BLOCKS_PER_FILE = _DISK_DEFAULT_BLOCKS_PER_FILE;
+    MEM.DEFAULT_CAPACITY = _MEM_DEFAULT_CAPACITY;
+    MEM.DEFAULT_PROCESS_PAGE = _MEM_DEFAULT_PROCESS_PAGE;
+    MEM.DEFAULT_STACK_PAGE = _MEM_DEFAULT_STACK_PAGE;
+    MEM.DEFAULT_PAGE_BIT = _MEM_DEFAULT_PAGE_BIT;
+    MEM.DEFAULT_PAGE_SIZE = _MEM_DEFAULT_PAGE_SIZE;
+    OS.MEM.DEFAULT_OS_USED_PAGE = _OS_MEM_DEFAULT_OS_USED_PAGE;
+    OS.BOOT_MEMORY_KB = _OS_BOOT_MEMORY_KB;
 }

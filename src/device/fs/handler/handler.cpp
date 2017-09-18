@@ -2,16 +2,16 @@
 // Created by 王耀 on 2017/9/16.
 //
 
-#include "../../../../include/device/fs/fs.h"
-#include "../../../../include/device/fs/handler/handler.h"
+#include "handler.h"
 
-Handler::Handler(const std::string &path, FS* parent) {
+Handler::Handler(const std::string &path) {
     mPath = path;
-    mParent = parent;
 }
 
-bool Handler::init(long basePos, char *buffer, long bufferSize) {
-// TODO
+bool Handler::init(unsigned long bufferSize) {
+    mBufferSize = bufferSize;
+    mUsedSize = 0;
+    mBlockList = nullptr;
     return true;
 }
 

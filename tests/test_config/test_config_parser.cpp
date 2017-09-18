@@ -17,14 +17,27 @@ TEST(ConfigTest, ConfigDefault) {
     EXPECT_EQ(1.0, Config::getInstance()->CPU.CPU_RATE);
     EXPECT_EQ(512, Config::getInstance()->DISK.BLOCK_SIZE);
     EXPECT_EQ(4, Config::getInstance()->DISK.DEFAULT_BLOCKS_PER_FILE);
-    EXPECT_EQ(2048, Config::getInstance()->MEM.DEFAULT_STACK_SIZE);
+    EXPECT_EQ(1, Config::getInstance()->MEM.DEFAULT_STACK_PAGE);
 }
 
 TEST(ConfigTest, ConfigReload) {
-    EXPECT_EQ(true, Config::init("../../config.json", false));
+    EXPECT_EQ(true, Config::init("../../config.json", true));
     EXPECT_NE(nullptr, Config::getInstance());
-    Config::getInstance()->MEM.DEFAULT_STACK_SIZE = 1024;
-    EXPECT_EQ(1024, Config::getInstance()->MEM.DEFAULT_STACK_SIZE);
+    Config::getInstance()->MEM.DEFAULT_STACK_PAGE = 1;
+    EXPECT_EQ(1, Config::getInstance()->MEM.DEFAULT_STACK_PAGE);
     EXPECT_EQ(true, Config::getInstance()->reload());
-    EXPECT_EQ(2048, Config::getInstance()->MEM.DEFAULT_STACK_SIZE);
+    EXPECT_EQ(2, Config::getInstance()->MEM.DEFAULT_STACK_PAGE);
+}
+
+TEST(ConfigTest, JSONTreeParser) {
+    EXPECT_EQ(true, Config::init("../../config.json", true));
+    EXPECT_NE(nullptr, Config::getInstance());
+    EXPECT_EQ(0, Config::getInstance()->DISK.BUFFER.MIN_BLOCK);
+    EXPECT_EQ(128, Config::getInstance()->OS.MEM.DEFAULT_OS_USED_PAGE);
+}
+
+TEST(ConfigTest, ValidConfig) {
+    Config::init("", false);
+    Config::getInstance()->OS.BOOT_MEMORY_KB = 0;
+    EXPECT_EQ(false, Config::getInstance()->check());
 }

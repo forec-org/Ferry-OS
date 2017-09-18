@@ -19,7 +19,7 @@ set(
         test_SRCS
         gtest.cpp
         test_config/test_config_parser.cpp
-)
+        ../include/config/macro.h ../include/device/memory/page_table_item.h ../include/device/memory/process_table_item.h ../include/device/memory/frame_table_item.h ../include/device/memory/page_table.h)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/config
@@ -33,6 +33,7 @@ add_executable(runUnitTests gtest.cpp ${test_SRCS})
 
 # add all library below
 target_link_libraries(runUnitTests config ${Boost_LIBRARIES})
+target_link_libraries(runUnitTests memory)
 target_link_libraries(runUnitTests gtest gtest_main)
 target_link_libraries(runUnitTests gmock gmock_main)
 #add_test(runUnitTests runUnitTests)

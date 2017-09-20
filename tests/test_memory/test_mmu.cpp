@@ -52,17 +52,25 @@ TEST(MMUTest, MMU_USER_PROCESS) {
 
 TEST(MMUTest, MMU_USER_MEMORY) {
     MMU::init();
-    unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
-    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_PAGE;
+    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
     unsigned int pid1 = 1, pid2 = 2;
     EXPECT_TRUE(MMU::getInstance()->allocProcess(pid1, ""));
     EXPECT_TRUE(MMU::getInstance()->allocProcess(pid2, ""));
     unsigned long address1 = MMU::getInstance()->allocUserMemory(pid1, PAGE * 3);
     unsigned long address2 = MMU::getInstance()->allocUserMemory(pid2, PAGE * 2);
-    EXPECT_TRUE(0, address1);
-    EXPECT_TRUE(0, address2);
-    unsigned long value = 0xAAAAAAAAAAAAAAAA;
+    EXPECT_EQ(MMU::getInstance()->getProcess(pid1)->getHeapHeader(), address1 + PAGE * 3);
+    EXPECT_EQ(MMU::getInstance()->getProcess(pid2)->getHeapHeader(), address2 + PAGE * 2);
 
+    auto space = new char[PAGE * 2];
+    memset(space, 0xAA, PAGE * 2);
+
+    EXPECT_TRUE(MMU::getInstance()->write(address1, space, PAGE * 2, pid1));
+    EXPECT_TRUE(MMU::getInstance()->write(address2 + PAGE, space, PAGE * 2, pid2));
+
+    EXPECT_EQ(0xAAAAAAAAAAAAAAAA, MMU::getInstance()->readWord(pid1, address1 + PAGE));
+    EXPECT_EQ(0xAAAAAAAAAAAAAAAA, MMU::getInstance()->readWord(pid1, address1 + PAGE));
+
+    delete []space;
 
 }
 

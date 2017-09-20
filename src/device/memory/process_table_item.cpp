@@ -2,6 +2,7 @@
 // Created by 王耀 on 2017/9/18.
 //
 
+#include <iostream>
 #include "process_table_item.h"
 #include "config.h"
 #include "mmu.h"
@@ -180,7 +181,7 @@ bool ProcessTableItem::write(unsigned long logicalAddress, const void *src, unsi
     unsigned long index = 0;
     if (leftSize & (PAGE - 1))
         pages++;
-    if (logicalAddress & (PAGE - 1))
+    if (firstSize)
         pages++;
 
     for (unsigned long pageNumber = 0; pageNumber < pages; pageNumber++) {
@@ -198,7 +199,7 @@ bool ProcessTableItem::write(unsigned long logicalAddress, const void *src, unsi
         // 第一页，需要将该页剩余空闲空间填满
         if (pageNumber == 0) {
             // 获取开始写的物理地址
-            dst = (unsigned long)dst + logicalAddress & (PAGE - 1);
+            dst += logicalAddress & (PAGE - 1);
             memcpy((void *)dst, src, firstSize);
             index += firstSize;
         } else {

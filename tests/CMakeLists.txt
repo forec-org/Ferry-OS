@@ -19,10 +19,12 @@ set(
         test_SRCS
         gtest.cpp
         test_config/test_config_parser.cpp
-        ../include/config/macro.h ../include/device/memory/page_table_item.h ../include/device/memory/process_table_item.h ../include/device/memory/frame_table_item.h ../include/device/memory/page_table.h)
+        test_memory/test_mmu.cpp
+)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/config
+        ${PROJECT_SOURCE_DIR}/include/device/memory
 )
 
 link_directories(

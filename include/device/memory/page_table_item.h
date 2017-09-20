@@ -9,44 +9,51 @@
 
 class PageTableItem {
 private:
-    long mLogicalAddress;
-    long mPhysicalAddress;
-    long mSwapAddress;
+    unsigned long mLogicalPage;
+    unsigned long mPhysicalAddress;
+    unsigned long mSwapAddress;
     unsigned int mPid;
-    unsigned int used;   // LRU
+    bool mUsed;
+    bool mHosted;
     bool mSwapped;
     bool mChanged;
     bool mInMemory;
     bool mSystem;
 public:
     PageTableItem *pre, *next;
-    explicit PageTableItem(long logicalAddress, unsigned int pid, long physicalAddress);
+    explicit PageTableItem(unsigned long logicalPage, unsigned int pid, unsigned long physicalAddress);
 
     bool isInMemory() { return mInMemory; }
     bool isChanged() { return mChanged; }
     bool isSwapped() { return mSwapped; }
     bool isSystem() { return mSystem; }
+    bool isHosted() { return mHosted; }
+    bool isUsed() { return mUsed; }
     void setSystem() { mSystem = true; }
+    void setChanged() { mChanged = true; }
+    void setSwapped() { mSwapped = true; }
+    void setInMemory() { mInMemory = true; }
+    void setHosted() { mHosted = true; }
+    void setUsed() { mUsed = true; }
+    void clearHosted() { mHosted = false; }
+    void clearUsed() { mUsed = false; }
 
     bool swapIntoMemory();
     bool swapOutMemory();
 
     bool operator==(const PageTableItem &);
 
-    void setPhysicalAddress(long physicalAddress);
-    long getPhysicalAddress();
+    void setPhysicalAddress(unsigned long physicalAddress);
+    unsigned long getPhysicalAddress();
 
-    void setLogicalAddress(long logicalAddress);
-    long getLogicalAddress();
+    void setLogicalPage(unsigned long logicalPage);
+    unsigned long getLogicalPage();
 
     unsigned int getPid();
     void setPid(unsigned int pid);
 
     std::pair<long, unsigned int> getID();
     void reset();
-
-    void write(char *src, unsigned int size);
-    char *read();
 };
 
 #endif //SDOS_PAGE_TABLE_ITEM_H

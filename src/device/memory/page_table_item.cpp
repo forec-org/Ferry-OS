@@ -2,40 +2,44 @@
 // Created by 王耀 on 2017/9/18.
 //
 
+#include "mmu.h"
 #include "page_table_item.h"
 
-PageTableItem::PageTableItem(long logicalAddress, unsigned int pid, long physicalAddress) {
+PageTableItem::PageTableItem(unsigned long logicalPage, unsigned int pid, unsigned long physicalAddress) {
     mChanged = false;
     mInMemory = false;
     mSwapped = false;
     mSystem = false;
-    mLogicalAddress = logicalAddress;
+    mHosted = false;
+    mUsed = false;
+    mLogicalPage = logicalPage;
     mPhysicalAddress = physicalAddress;
+    mSwapAddress = 0;
     mPid = pid;
     pre = next = nullptr;
 }
 
 bool PageTableItem::operator==(const PageTableItem & other) {
-    return mLogicalAddress == other.mLogicalAddress;
+    return mLogicalPage == other.mLogicalPage && mPid == other.mPid;
 }
 
-long PageTableItem::getPhysicalAddress() {
+unsigned long PageTableItem::getPhysicalAddress() {
     return mPhysicalAddress;
 }
 
-long PageTableItem::getLogicalAddress() {
-    return mLogicalAddress;
+unsigned long PageTableItem::getLogicalPage() {
+    return mLogicalPage;
 }
 
 unsigned int PageTableItem::getPid() {
     return mPid;
 }
 
-void PageTableItem::setLogicalAddress(long logicalAddress) {
-    mLogicalAddress = logicalAddress;
+void PageTableItem::setLogicalPage(unsigned long logicalPage) {
+    mLogicalPage = logicalPage;
 }
 
-void PageTableItem::setPhysicalAddress(long physicalAddress) {
+void PageTableItem::setPhysicalAddress(unsigned long physicalAddress) {
     mPhysicalAddress = physicalAddress;
 }
 
@@ -44,7 +48,7 @@ void PageTableItem::setPid(unsigned int pid) {
 }
 
 std::pair<long, unsigned int> PageTableItem::getID() {
-    return std::make_pair(mLogicalAddress, mPid);
+    return std::make_pair(mLogicalPage, mPid);
 }
 
 void PageTableItem::reset() {
@@ -53,23 +57,35 @@ void PageTableItem::reset() {
     mChanged = false;
     mInMemory = false;
     mSystem = false;
-}
-
-char* PageTableItem::read() {
-    // TODO
-    return nullptr;
-}
-
-void PageTableItem::write(char *src, unsigned int size) {
-    // TODO
+    mUsed = false;
 }
 
 bool PageTableItem::swapIntoMemory() {
-    // TODO
-    return true;
+    if (mSwapAddress == 0)
+        return true;
+// TODO
+    return false;
 }
 
 bool PageTableItem::swapOutMemory() {
-    // TODO
+    if (mSwapAddress == 0)
+        mSwapAddress = MMU::getInstance()->getAvailableSwapAddress();
+
+    // 交换空间已满，无法换页
+    if (!mSwapAddress)
+        return false;
+
+    // 换出到 Swap 空间
+    if (mPhysicalAddress != 0) {
+        // TODO
+    }
+    mSwapped = true;
+
+    // 将原始空间填充 0
+    if (mPhysicalAddress != 0) {
+        unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
+        auto *dst = (void *)mPhysicalAddress;
+        memset(dst, 0, PAGE);
+    }
     return true;
 }

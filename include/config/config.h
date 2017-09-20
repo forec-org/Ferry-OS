@@ -51,6 +51,8 @@ public:
             unsigned int DEFAULT_OS_USED_PAGE;  // Page
         } MEM;
         unsigned int BOOT_MEMORY_KB;            // KByte
+        unsigned int MAXIMUM_TASKS;
+        unsigned long MAXIMUM_TASK_PAGE;        // Page
     } OS;
 };
 

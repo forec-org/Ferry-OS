@@ -17,10 +17,12 @@
 #define _MEM_DEFAULT_CAPACITY 1024         // Page
 #define _MEM_DEFAULT_PROCESS_PAGE 16       // Page
 #define _MEM_DEFAULT_STACK_PAGE 1          // Page
-#define _MEM_DEFAULT_PAGE_BIT 10
+#define _MEM_DEFAULT_PAGE_BIT 20
 #define _MEM_DEFAULT_PAGE_SIZE (1 << _MEM_DEFAULT_PAGE_BIT)   // Byte
 
-#define _OS_MEM_DEFAULT_OS_USED_PAGE 128   // Page
+#define _OS_MEM_DEFAULT_OS_USED_PAGE (_MEM_DEFAULT_CAPACITY >> 3)   // Page
 #define _OS_BOOT_MEMORY_KB 512             // KByte
+#define _OS_MAXIMUM_TASKS 64
+#define _OS_MAXIMUM_TASK_PAGE (_MEM_DEFAULT_CAPACITY << 2)         // Page
 
 #endif //SDOS_MACRO_H

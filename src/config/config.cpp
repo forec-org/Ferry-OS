@@ -92,6 +92,8 @@ bool Config::reload() {
         boost::property_tree::ptree os_mem = os.get_child("MEM");
         OS.MEM.DEFAULT_OS_USED_PAGE = os_mem.get<unsigned int>("DEFAULT_OS_USED_PAGE");
         OS.BOOT_MEMORY_KB = os.get<unsigned int>("BOOT_MEMORY_KB");
+        OS.MAXIMUM_TASKS = os.get<unsigned int>("MAXIMUM_TASKS");
+        OS.MAXIMUM_TASK_PAGE = os.get<unsigned long>("MAXIMUM_TASK_PAGE");
 
     } catch (boost::property_tree::ptree_error &e) {
         if (Config::mShowErrorLog)
@@ -121,4 +123,6 @@ void Config::loadDefault() {
     MEM.DEFAULT_PAGE_SIZE = _MEM_DEFAULT_PAGE_SIZE;
     OS.MEM.DEFAULT_OS_USED_PAGE = _OS_MEM_DEFAULT_OS_USED_PAGE;
     OS.BOOT_MEMORY_KB = _OS_BOOT_MEMORY_KB;
+    OS.MAXIMUM_TASKS = _OS_MAXIMUM_TASKS;
+    OS.MAXIMUM_TASK_PAGE = _OS_MAXIMUM_TASK_PAGE;
 }

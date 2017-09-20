@@ -35,3 +35,4 @@ build
 *.exe
 *.out
 *.app
+!/src/device/memory/process_table_item.cpp

@@ -5,7 +5,7 @@ message(STATUS "Project: Software Defined Operating System")
 message(STATUS "Project Directory: ${PROJECT_SOURCE_DIR}")
 
 set(CMAKE_BUILD_TYPE DEBUG)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_COMPILER "clang++")
 set(BUILD_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 set(LIBRARY_OUTPUT_PATH ${BUILD_OUTPUT_PATH}/lib)

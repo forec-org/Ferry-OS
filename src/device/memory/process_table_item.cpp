@@ -40,6 +40,7 @@ void ProcessTableItem::updatePageTable(unsigned long logicalPage, unsigned long 
     if (pti->isSwapped())
         pti->swapIntoMemory();
     pti->setInMemory();
+    pti->setUsed();
 }
 
 unsigned long ProcessTableItem::getPhysicalAddress(unsigned long logicalAddress) {
@@ -176,6 +177,7 @@ bool ProcessTableItem::write(unsigned long logicalAddress, const void *src, unsi
     unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
     unsigned long logicalPage = logicalAddress >> BIT;
     unsigned long firstSize = PAGE - (logicalAddress & (PAGE - 1));
+    firstSize = size > firstSize ? firstSize : size;
     unsigned long leftSize = size - firstSize;
     unsigned long pages = leftSize >> BIT;
     unsigned long index = 0;

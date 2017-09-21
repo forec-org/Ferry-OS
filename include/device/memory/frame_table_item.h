@@ -20,6 +20,7 @@ public:
     bool occupy(unsigned int pid, unsigned long logicalPage);
     bool isOccupied() { return mOccupied; }
     unsigned long getFrameAddress() { return mFrameAddress; }
+    unsigned long getLogicalPage() { return mLogicPage; }
     void updateFrame(unsigned long frameAddress, unsigned long logicalPage, unsigned int pid);
     void setFrameAddress(unsigned long frameAddress);
 };

@@ -270,7 +270,8 @@ unsigned long MMU::allocUserMemory(unsigned int pid, unsigned long size, unsigne
     unsigned long virtualPointer = start == 0 ? prti->getHeapHeader() : start;
 
     // 计算需要分配的内存大小和对应的页数
-    unsigned long needToAllocSize = size - prti->getAllocButNotUsedSize();
+    unsigned long allocButNotUsedSize = prti->getAllocButNotUsedSize();
+    unsigned long needToAllocSize = size > allocButNotUsedSize ? size - allocButNotUsedSize : 0;
     unsigned long page = needToAllocSize >> BIT;
     if (needToAllocSize & ((1 << BIT) - 1))
         page++;
@@ -346,9 +347,7 @@ void MMU::freeUserMemory(unsigned int pid, unsigned long logicalAddress, unsigne
         auto page = logicalAddress >> BIT;
         if (logicalAddress & ((1 << BIT) - 1))
             page++;
-        auto endPage = prti->getHeapHeader() >> BIT;
-        if (prti->getHeapHeader() & ((1 << BIT) - 1))
-            endPage++;
+        auto endPage = (prti->getHeapHeader() - 1) >> BIT;
         for (unsigned long i = page; i <= endPage; i++) {
             if (prti->getPageTableItem(i) && prti->getPageTableItem(i)->isUsed()) {
                 freeFrame(pid, i);
@@ -370,7 +369,8 @@ void MMU::freeUserMemory(unsigned int pid, unsigned long logicalAddress, unsigne
 
     // 要释放的页包括从起始释放地址对应的下一页到结束地址对应的前一页
     for (unsigned long i = startPage; i < endPage; i++) {
-        if (prti->getPageTableItem(i) && prti->getPageTableItem(i)->isUsed()) {
+        PageTableItem *prpti = prti->getPageTableItem(i);
+        if (prpti && prpti->isUsed()) {
             freeFrame(pid, i);
             PageTableItem *pti = mPageTable->getPageTableItem(i, pid);
             if (pti)
@@ -651,6 +651,7 @@ bool MMU::freeProcess(unsigned int pid) {
 
     // 将全局页表中与该进程相关的页全部刷新为未占用
     mPageTable->clearPageForPid(pid);
+    mProcessTable.erase(pid);
     return true;
 }
 
@@ -670,4 +671,13 @@ bool MMU::write(unsigned long logicalAddress, const void *src, unsigned long siz
     if (!pti)
         return false;
     return pti->write(logicalAddress, src, size);
+}
+
+unsigned int MMU::getUsedFrameCount() {
+    unsigned int count = 0;
+    for (FrameTableItem * fti : mFrameTable)
+        if (fti && fti->isOccupied()) {
+            count++;
+        }
+    return count;
 }

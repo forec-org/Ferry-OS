@@ -75,8 +75,21 @@ public:
     unsigned long allocUserMemory(unsigned int pid, unsigned long size, unsigned long start = 0);
     void freeUserMemory(unsigned int pid, unsigned long logicalAddress, unsigned long size);
 
-    // 获取一块可用帧，返回该帧在帧表中的偏移量
+    // 获取一块可用帧
     FrameTableItem *getFreeFrame();
+
+    FrameTableItem *getFrame(unsigned long physicalAddress);
+
+    // 释放帧表中的一帧
+    void freeFrame(unsigned int pid, unsigned long logicalPage);
+
+    // 获取交换空间中一块可用的页
+    unsigned long getAvailableSwapAddress();
+    void *getPhysicalPointer(unsigned long logicalAddress, unsigned int pid = 0);
+
+    /*
+     * 以下方法反馈 MMU 信息，帮助 OS 调试回显
+     */
 
     // 获取已经分配实际内存，且可用的帧数
     unsigned int getAvailableFrameCount();
@@ -89,14 +102,8 @@ public:
     unsigned int getNeedAllocFrameCount();
     FrameTableItem *getNeedAllocFrame();
 
-    FrameTableItem *getFrame(unsigned long physicalAddress);
-
-    // 释放帧表中的一帧
-    void freeFrame(unsigned int pid, unsigned long logicalPage);
-
-    // 获取交换空间中一块可用的页
-    unsigned long getAvailableSwapAddress();
-    void *getPhysicalPointer(unsigned long logicalAddress, unsigned int pid = 0);
+    // 获取已占用的帧数
+    unsigned int getUsedFrameCount();
 };
 
 #endif //SDOS_MEMORY_H

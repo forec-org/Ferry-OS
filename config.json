@@ -20,7 +20,8 @@
   },
   "OS": {
     "MEM": {
-      "DEFAULT_OS_USED_PAGE": 128
+      "DEFAULT_OS_USED_PAGE": 128,
+      "SWAP_PAGE": 1024
     },
     "BOOT_MEMORY_KB": 512,
     "MAXIMUM_TASKS": 64,

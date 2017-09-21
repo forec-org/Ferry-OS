@@ -436,14 +436,6 @@ void MMU::updateAll(unsigned long logicalPage, unsigned int pid, unsigned long p
     prti->updatePageTable(logicalPage, physicalAddress);
 }
 
-FrameTableItem *MMU::getFreeFrame() {
-    for (FrameTableItem *p : mFrameTable) {
-        if (!p->isOccupied())
-            return p;
-    }
-    return nullptr;
-}
-
 unsigned int MMU::getAvailableFrameCount() {
     unsigned int count = 0;
     for (FrameTableItem *p : mFrameTable) {

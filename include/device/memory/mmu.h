@@ -67,16 +67,15 @@ public:
 
     // 在系统独占区域分配系统内存，超出时返回空
     unsigned long allocSystemMemory(unsigned long size);
+
     [[deprecated("This method could cause unexpected address moving.")]]
     void freeSystemMemory(unsigned long logicalAddress, unsigned long size);
+
     unsigned long getSystemUsedSize();
 
     // 为进程分配堆空间
     unsigned long allocUserMemory(unsigned int pid, unsigned long size, unsigned long start = 0);
     void freeUserMemory(unsigned int pid, unsigned long logicalAddress, unsigned long size);
-
-    // 获取一块可用帧
-    FrameTableItem *getFreeFrame();
 
     FrameTableItem *getFrame(unsigned long physicalAddress);
 

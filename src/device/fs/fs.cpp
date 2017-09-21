@@ -1,0 +1,263 @@
+//
+// Created by 王耀 on 2017/9/21.
+//
+
+#include "config.h"
+#include <iostream>
+#include <fstream>
+#include "fs.h"
+
+using namespace std;
+using namespace boost::filesystem;
+
+unsigned long FS::mSwapSpacePage = 0;
+FS *FS::instance = nullptr;
+
+void FS::init(const std::string &path, unsigned long swapSpacePage) {
+    mSwapSpacePage = swapSpacePage;
+    try {
+        instance = new FS(path);
+    } catch(std::bad_alloc &e) {
+        std::cerr << "Alloc FS Error: " << e.what() << std::endl;
+        return;
+    }
+
+    if (!instance->isExist(path)) {
+        create_directories(path);
+    }
+}
+
+void FS::destroy() {
+    delete instance;
+}
+
+FS *FS::getInstance() {
+    if (!instance)
+        FS::init();
+    return instance;
+}
+
+bool FS::isExist(const std::string &path) {
+    return exists(getPath(path));
+}
+
+bool FS::mkdir(const std::string &path) {
+    return exists(getPath(path)) || create_directories(getPath(path));
+}
+
+bool FS::rmdir(const std::string &path) {
+    if (!exists(getPath(path)))
+        return false;
+    return remove_all(getPath(path)) > 0;
+}
+
+FS::FS(const std::string &path) {
+    mBasePath = boost::filesystem::path(path);
+    mSwapPath = getPath(".swap");
+    touchFile(".swap");
+    mSwapUsedPage = 0;
+    mSwapAllocPage = 0;
+    mBitmap.clear();
+    mAllocmap.clear();
+    mBitmap.resize(FS::mSwapSpacePage, false);
+    mAllocmap.resize(FS::mSwapSpacePage, false);
+}
+
+FS::~FS() {
+    remove(getPath(".swap"));
+}
+
+std::string FS::getBasePath() {
+    return std::string(mBasePath.c_str());
+}
+
+std::string FS::getPath(const std::string &path) {
+    boost::filesystem::path npath = mBasePath;
+    npath.append(path);
+    return std::string(npath.c_str());
+}
+
+bool FS::isDirectory(const std::string &path) {
+    return is_directory(getPath(path));
+}
+
+bool FS::isFile(const std::string &path) {
+    return is_regular_file(getPath(path));
+}
+
+bool FS::touchFile(const std::string &path) {
+    return writeFile(path, nullptr, 0);
+}
+
+bool FS::rmFile(const std::string &path) {
+    return remove(getPath(path));
+}
+
+bool FS::cpFile(const std::string &path, const std::string &newpath) {
+    if (!isExist(path))
+        return false;
+    try {
+        copy_file(getPath(path), getPath(newpath));
+    } catch (filesystem_error &e) {
+        std::cerr << "Copy Error: " << e.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool FS::mvFile(const std::string &path, const std::string &newpath) {
+    if (!isExist(path))
+        return false;
+    try {
+        copy_file(getPath(path), getPath(newpath));
+    } catch (filesystem_error &e) {
+        std::cerr << "Rename Error: " << e.what() << std::endl;
+        return false;
+    }
+    rmFile(path);
+    return true;
+}
+
+unsigned long FS::getSwapUsedPage() {
+    return mSwapUsedPage;
+}
+
+unsigned long FS::getSwapSpacePage() {
+    return FS::mSwapSpacePage;
+}
+
+unsigned long FS::allocSwapAddress() {
+    unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
+    if (mSwapUsedPage < mSwapAllocPage) {
+        for (unsigned long i = 0; i < mSwapAllocPage; i++) {
+            if (mAllocmap[i] && !mBitmap[i]) {
+                mSwapUsedPage++;
+                mBitmap[i] = true;
+                return i << BIT;
+            }
+        }
+    }
+    unsigned long swapAddress = mSwapAllocPage << BIT;
+    mBitmap[mSwapAllocPage] = true;
+    mAllocmap[mSwapAllocPage] = true;
+    mSwapUsedPage++;
+    mSwapAllocPage++;
+    return swapAddress;
+}
+
+void FS::clearSwapPage(unsigned long swapPage) {
+    if (swapPage >= mSwapSpacePage)
+        return;
+    if (mBitmap[swapPage]) {
+        mSwapUsedPage--;
+        mBitmap[swapPage] = false;
+    }
+}
+
+bool FS::dumpPageIntoSwap(const void *src, unsigned long swapPage) {
+    if (swapPage >= mSwapAllocPage)
+        return false;
+    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
+    unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
+    std::ofstream dump;
+    dump.open(mSwapPath, std::ios::in | std::ios::out | std::ios::binary);
+    if (dump.fail())
+        return false;
+    if (!src) {
+        dump.close();
+        return false;
+    }
+    dump.seekp(swapPage << BIT, std::ios::beg);
+    dump.write((char *)src, PAGE);dump.close();
+    dump.close();
+    return true;
+}
+
+bool FS::loadPageIntoMemory(const void * dst, unsigned long swapPage) {
+    if (swapPage >= mSwapAllocPage)
+        return false;
+    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
+    unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
+    std::ifstream loader;
+    loader.open(mSwapPath, std::ios::in | std::ios::binary);
+    if (loader.fail())
+        return false;
+    if (!dst) {
+        loader.close();
+        return false;
+    }
+    loader.seekg(swapPage << BIT, std::ios::beg);
+    loader.read((char *)dst, PAGE);
+    loader.close();
+    return true;
+}
+
+unsigned long FS::getFileSize(const std::string &path) {
+    if (!exists(getPath(path)))
+        return 0;
+    return file_size(getPath(path));
+}
+
+bool FS::readFile(const std::string &path, const void *dst, unsigned long size, unsigned long start) {
+    if (!exists(getPath(path)))
+        return false;
+    std::ifstream reader;
+    reader.open(getPath(path), std::ios::in | std::ios::binary);
+    if (reader.fail())
+        return false;
+    if (!dst && size) {
+        reader.close();
+        return false;
+    }
+    reader.seekg((long long int)start, std::ios::beg);
+    reader.read((char *)dst, size);
+    reader.close();
+    return true;
+}
+
+char FS::readFileByte(const std::string &path, unsigned long offset) {
+    char c;
+    if (!readFile(path, &c, 1, offset))
+        return 0;
+    return c;
+}
+
+bool FS::writeFile(const std::string &path, const void *src, unsigned long size, unsigned long start) {
+    std::ofstream writer;
+    if (!isExist(path)) {
+        writer.open(getPath(path), std::ios::out | std::ios::binary);
+        if (writer.is_open())
+            writer.close();
+        else
+            return false;
+    }
+    writer.open(getPath(path), std::ios::in | std::ios::out | std::ios::binary);
+    if (!writer.is_open()) {
+        return false;
+    }
+    writer.seekp((long long int)start, std::ios::beg);
+    if (src != nullptr)
+        writer.write((char *) src, size);
+    writer.close();
+    return true;
+}
+
+bool FS::appendFile(const std::string &path, const void *src, unsigned long size) {
+    std::ofstream appender;
+    appender.open(getPath(path), std::ios::out | std::ios::app | std::ios::binary);
+    if (!appender.is_open())
+        return false;
+    if (src)
+        appender.write((char *) src, size);
+    appender.close();
+    return true;
+}
+
+void FS::format() {
+    if (!instance)
+        return;
+    std::string path(instance->mBasePath.c_str());
+    if (exists(path))
+        remove_all(path);
+    destroy();
+}

@@ -149,7 +149,5 @@ TEST(MMUTest, MMU_INFO) {
     EXPECT_EQ(systemUsedSize + leftSize + PAGE * 4, MMU::getInstance()->getSystemUsedSize());
     EXPECT_EQ(usedCount1 + 4 + (leftSize > 0), MMU::getInstance()->getUsedFrameCount());
 
-    unsigned int pid1 = 1, pid2 = 2;
-
     MMU::destroy();
 }

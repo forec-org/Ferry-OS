@@ -20,11 +20,13 @@ set(
         gtest.cpp
         test_config/test_config_parser.cpp
         test_memory/test_mmu.cpp
+        test_fs/test_fs.cpp
 )
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/config
         ${PROJECT_SOURCE_DIR}/include/device/memory
+        ${PROJECT_SOURCE_DIR}/include/device/fs
 )
 
 link_directories(
@@ -36,6 +38,7 @@ add_executable(runUnitTests gtest.cpp ${test_SRCS})
 # add all library below
 target_link_libraries(runUnitTests config ${Boost_LIBRARIES})
 target_link_libraries(runUnitTests memory)
+target_link_libraries(runUnitTests fs)
 target_link_libraries(runUnitTests gtest gtest_main)
 target_link_libraries(runUnitTests gmock gmock_main)
 #add_test(runUnitTests runUnitTests)

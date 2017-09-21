@@ -49,6 +49,9 @@ public:
     struct OS {
         struct MEM {
             unsigned int DEFAULT_OS_USED_PAGE;  // Page
+            unsigned long SWAP_PAGE;            // Page
+            unsigned long SWAP_BLOCK;           // Block
+            unsigned long SWAP_SIZE;            // Byte
         } MEM;
         unsigned int BOOT_MEMORY_KB;            // KByte
         unsigned int MAXIMUM_TASKS;

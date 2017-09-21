@@ -91,6 +91,9 @@ bool Config::reload() {
         /* OS configuration */
         boost::property_tree::ptree os_mem = os.get_child("MEM");
         OS.MEM.DEFAULT_OS_USED_PAGE = os_mem.get<unsigned int>("DEFAULT_OS_USED_PAGE");
+        OS.MEM.SWAP_PAGE = os_mem.get<unsigned long>("SWAP_PAGE");
+        OS.MEM.SWAP_BLOCK = OS.MEM.SWAP_PAGE * (MEM.DEFAULT_PAGE_SIZE / DISK.BLOCK_SIZE);
+        OS.MEM.SWAP_SIZE = OS.MEM.SWAP_PAGE << MEM.DEFAULT_PAGE_BIT;
         OS.BOOT_MEMORY_KB = os.get<unsigned int>("BOOT_MEMORY_KB");
         OS.MAXIMUM_TASKS = os.get<unsigned int>("MAXIMUM_TASKS");
         OS.MAXIMUM_TASK_PAGE = os.get<unsigned long>("MAXIMUM_TASK_PAGE");
@@ -122,6 +125,9 @@ void Config::loadDefault() {
     MEM.DEFAULT_PAGE_BIT = _MEM_DEFAULT_PAGE_BIT;
     MEM.DEFAULT_PAGE_SIZE = _MEM_DEFAULT_PAGE_SIZE;
     OS.MEM.DEFAULT_OS_USED_PAGE = _OS_MEM_DEFAULT_OS_USED_PAGE;
+    OS.MEM.SWAP_PAGE = _OS_MEM_SWAP_PAGE;
+    OS.MEM.SWAP_BLOCK = _OS_MEM_SWAP_BLOCK;
+    OS.MEM.SWAP_SIZE = _OS_MEM_SWAP_SIZE;
     OS.BOOT_MEMORY_KB = _OS_BOOT_MEMORY_KB;
     OS.MAXIMUM_TASKS = _OS_MAXIMUM_TASKS;
     OS.MAXIMUM_TASK_PAGE = _OS_MAXIMUM_TASK_PAGE;

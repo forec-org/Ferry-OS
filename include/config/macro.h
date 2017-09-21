@@ -21,8 +21,11 @@
 #define _MEM_DEFAULT_PAGE_SIZE (1 << _MEM_DEFAULT_PAGE_BIT)   // Byte
 
 #define _OS_MEM_DEFAULT_OS_USED_PAGE (_MEM_DEFAULT_CAPACITY >> 3)   // Page
+#define _OS_MEM_SWAP_PAGE _MEM_DEFAULT_CAPACITY                     // Page
+#define _OS_MEM_SWAP_BLOCK (_OS_MEM_SWAP_PAGE * (_MEM_DEFAULT_PAGE_SIZE / _DISK_BLOCK_SIZE))
+#define _OS_MEM_SWAP_SIZE ( _OS_MEM_SWAP_PAGE << _MEM_DEFAULT_PAGE_BIT)  // Byte
 #define _OS_BOOT_MEMORY_KB 512             // KByte
 #define _OS_MAXIMUM_TASKS 64
-#define _OS_MAXIMUM_TASK_PAGE (_MEM_DEFAULT_CAPACITY << 2)         // Page
+#define _OS_MAXIMUM_TASK_PAGE (_MEM_DEFAULT_CAPACITY << 1)          // Page
 
 #endif //SDOS_MACRO_H

@@ -11,7 +11,7 @@ set(BUILD_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 set(LIBRARY_OUTPUT_PATH ${BUILD_OUTPUT_PATH}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${BUILD_OUTPUT_PATH}/bin)
 
-find_package(Boost 1.65.1 COMPONENTS system REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS system filesystem REQUIRED)
 
 add_compile_options(-std=c++11)
 

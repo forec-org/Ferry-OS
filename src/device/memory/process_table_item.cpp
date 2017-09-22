@@ -12,7 +12,12 @@ ProcessTableItem::ProcessTableItem(unsigned int pid, unsigned long pageCount, un
     mPageCount = pageCount;
     mStackPageCount = stackPageCount;
     mHeapUsedSize = 0;
+    mHeapAddress = 0;
     mPageTable.clear();
+}
+
+unsigned int ProcessTableItem::getPid() {
+    return mPid;
 }
 
 void ProcessTableItem::insertPage(PageTableItem *pti) {
@@ -86,11 +91,13 @@ uint8_t ProcessTableItem::readByte(unsigned long logicalAddress) {
     if (pti == mPageTable.end() || !pti->second)
         return 0;
 
+    MMU::getInstance()->usePage(logicalPage, mPid);
+
     // 要读取的页不在内存中，需触发 MMU 调页
     if (!pti->second->isInMemory()) {
-        if (MMU::getInstance()->pageFault(mPid, logicalAddress >> BIT))
-            return readByte(logicalAddress);
-        return 0;
+        if (!MMU::getInstance()->pageFault(mPid, logicalAddress >> BIT))
+            return 0;
+        return readByte(logicalAddress);
     }
 
     // 读取的页已在内存中，将物理地址以指针方式返回
@@ -115,6 +122,8 @@ uint32_t ProcessTableItem::readHalfWord(unsigned long logicalAddress) {
     auto pti = mPageTable.find(logicalPage);
     if (pti == mPageTable.end() || !pti->second)
         return 0;
+
+    MMU::getInstance()->usePage(logicalPage, mPid);
 
     // 要读取的页不在内存中，需触发 MMU 调页
     if (!pti->second->isInMemory()) {
@@ -145,6 +154,8 @@ uint64_t ProcessTableItem::readWord(unsigned long logicalAddress) {
     if (pti == mPageTable.end() || !pti->second)
         return 0;
 
+    MMU::getInstance()->usePage(logicalPage, mPid);
+
     // 要读取的页不在内存中，需触发 MMU 调页
     if (!pti->second->isInMemory()) {
         if (MMU::getInstance()->pageFault(mPid, logicalAddress >> BIT))
@@ -166,12 +177,14 @@ unsigned long ProcessTableItem::getAllocButNotUsedSize() {
 }
 
 unsigned long ProcessTableItem::getHeapHeader() {
+//    std::cerr << "卧槽 pid = " << mPid << ", mHeapAddress = " << mHeapAddress << ", mHeapUsedSize = " << mHeapUsedSize << std::endl;
     return mHeapAddress + mHeapUsedSize;
 }
 
 bool ProcessTableItem::write(unsigned long logicalAddress, const void *src, unsigned long size) {
-    if (!isValid(logicalAddress) || !isValid(logicalAddress + size))
+    if (!isValid(logicalAddress) || !isValid(logicalAddress + size - 1)) {
         return false;
+    }
 
     unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
     unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
@@ -188,13 +201,17 @@ bool ProcessTableItem::write(unsigned long logicalAddress, const void *src, unsi
 
     for (unsigned long pageNumber = 0; pageNumber < pages; pageNumber++) {
         auto pti = mPageTable.find(pageNumber + logicalPage);
-        if (pti == mPageTable.end() || !pti->second)
+        if (pti == mPageTable.end() || !pti->second) {
             return false;
+        }
+
+        MMU::getInstance()->usePage(pageNumber + logicalPage, mPid);
 
         // 要写的页不在内存中，触发调页
-        if (!pti->second->isInMemory())
+        if (!pti->second->isInMemory()) {
             if (!MMU::getInstance()->pageFault(mPid, pageNumber + logicalPage))
                 return false;
+        }
 
         unsigned long dst = pti->second->getPhysicalAddress();
 

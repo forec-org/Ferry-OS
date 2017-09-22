@@ -2,19 +2,21 @@
 // Created by 王耀 on 2017/9/18.
 //
 
-#include "mmu.h"
 #include "page_table_item.h"
+#include "mmu.h"
+#include "../../device/fs/fs.h"
 
 PageTableItem::PageTableItem(unsigned long logicalPage, unsigned int pid, unsigned long physicalAddress) {
     mChanged = false;
     mInMemory = false;
     mSwapped = false;
+    mHaveSwapped = false;
     mSystem = false;
     mHosted = false;
     mUsed = false;
     mLogicalPage = logicalPage;
     mPhysicalAddress = physicalAddress;
-    mSwapAddress = 0;
+    mSwapPage = FS::getInstance()->getSwapSpacePage();
     mPid = pid;
     pre = next = nullptr;
 }
@@ -52,35 +54,43 @@ std::pair<long, unsigned int> PageTableItem::getID() {
 }
 
 void PageTableItem::reset() {
-    mSwapAddress = 0;
-    mSwapped = false;
     mChanged = false;
     mInMemory = false;
     mSystem = false;
     mUsed = false;
 }
 
+unsigned long PageTableItem::getSwapPage() {
+    return mSwapPage;
+}
+
 bool PageTableItem::swapIntoMemory() {
-    if (mSwapAddress == 0)
-        return true;
-// TODO
-    return false;
+    if (!mPhysicalAddress)
+        return false;
+    if (mSwapPage == FS::getInstance()->getSwapSpacePage())
+        return false;
+    FS::getInstance()->loadPageIntoMemory((void*)mPhysicalAddress, mSwapPage);
+    setInMemory();
+    mSwapped = false;
+    return true;
 }
 
 bool PageTableItem::swapOutMemory() {
-    if (mSwapAddress == 0)
-        mSwapAddress = MMU::getInstance()->getAvailableSwapAddress();
+    if (mSwapPage == FS::getInstance()->getSwapSpacePage())
+        mSwapPage = FS::getInstance()->allocSwapPage();
 
     // 交换空间已满，无法换页
-    if (!mSwapAddress)
+    if (mSwapPage == FS::getInstance()->getSwapSpacePage())
         return false;
 
     // 换出到 Swap 空间
-    if (mPhysicalAddress != 0) {
-        // TODO
+    if (mPhysicalAddress) {
+        FS::getInstance()->dumpPageIntoSwap((void*)mPhysicalAddress, mSwapPage);
+        setSwapped();
+        mHaveSwapped = true;
     }
-    mSwapped = true;
 
+    mInMemory = false;
     // 将原始空间填充 0
     if (mPhysicalAddress != 0) {
         unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;

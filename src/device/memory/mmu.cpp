@@ -3,6 +3,7 @@
 //
 
 #include "mmu.h"
+#include "../../device/fs/fs.h"
 #include <iostream>
 
 MMU *MMU::instance = nullptr;
@@ -184,7 +185,8 @@ unsigned long MMU::allocSystemMemory(unsigned long size) {
         // 更新页表和帧表
         for (unsigned int i = 0; i < pageCount; i++) {
             mPageTable->insertPage(page + i, 0, (unsigned long) &mSystemAddress[pageAddress + (i << BIT)]);
-            mFrameTable[page + i]->updateFrame((unsigned long) &mSystemAddress[pageAddress + (i << BIT)], page + i, 0);
+            FrameTableItem * fti = getNeedAllocFrame();
+            fti->updateFrame((unsigned long) &mSystemAddress[pageAddress + (i << BIT)], page + i, 0);
         }
     }
 
@@ -224,8 +226,11 @@ void MMU::freeSystemMemory(unsigned long logicalAddress, unsigned long size) {
         lastPage = (unsigned int)mFrameTable.size();
 
     // 更新帧表，将 mSystemUsedSize - size 到 mSystemUsedSize 部分设置为未占用
-    for (unsigned int i = pageToFree; i < lastPage; i++)
-        mFrameTable[i]->clear();
+    for (unsigned int i = pageToFree; i < lastPage; i++) {
+        auto physicalAddress = (unsigned long)getPhysicalPointer(i, 0);
+        FrameTableItem * fti = getFrame(physicalAddress);
+        fti->clear();
+    }
 
     // 更新页表，将该部分内存在页表中的 mHosted 设为不使用、可置换
     for (unsigned int i = pageToFree; i < lastPage; i++) {
@@ -255,9 +260,9 @@ unsigned long MMU::allocUserMemory(unsigned int pid, unsigned long size, unsigne
 
     std::vector<unsigned long> pages = std::vector<unsigned long>();
     std::vector<unsigned long> interPages = std::vector<unsigned long>();
-    if (start == 0)  // 获取该进程堆上空闲页
+    if (start == 0) { // 获取该进程堆上空闲页
         interPages = prti->canUsePages(size);
-    else {
+    } else {
         unsigned long startPage = (start >> BIT) + ((start & ((1 << BIT) - 1)) != 0);
         unsigned long endAddress = size + start;
         unsigned long endPage = (endAddress >> BIT) + ((endAddress & ((1 << BIT) - 1)) != 0);
@@ -308,12 +313,14 @@ unsigned long MMU::allocUserMemory(unsigned int pid, unsigned long size, unsigne
     // 对于需要新分配内存且未占用的帧，先分配，再插入页
     unsigned int needToAllocFrames = getNeedAllocFrameCount();
     unsigned long allocFrames = page > needToAllocFrames ? needToAllocFrames : page;
+
     auto *space = new char[allocFrames << BIT];
     for (unsigned int i = 0; i < allocFrames; i++) {
         FrameTableItem *fti = getNeedAllocFrame();
         fti->updateFrame((unsigned long)space + (i << BIT), pages[i + reuseFrames], pid);
         prti->updatePageTable(pages[i + reuseFrames], fti->getFrameAddress());
         mPageTable->insertPage(pages[i + reuseFrames], pid, fti->getFrameAddress());
+
     }
     page -= allocFrames;
 
@@ -324,7 +331,7 @@ unsigned long MMU::allocUserMemory(unsigned int pid, unsigned long size, unsigne
 
     // 在堆上分配的常规内存，需要更新堆已使用的大小
     if (start == 0) {
-        prti->setHeapUsedSize(prti->getHeapHeader() + size);
+        prti->setHeapUsedSize(prti->getHeapUsedSize() + size);
     }
 
     return virtualPointer;
@@ -423,9 +430,9 @@ FrameTableItem* MMU::getFrame(unsigned long physicalAddress) {
 // 此方法仅由页表满时的 LRU 调度调用，此时的 physicalAddress 已经在帧表中存在
 void MMU::updateAll(unsigned long logicalPage, unsigned int pid, unsigned long physicalAddress) {
     FrameTableItem * fti = getFrame(physicalAddress);
-    if (!fti)
-        return;
-    fti->updateFrame(physicalAddress, logicalPage, pid);
+    if (fti)
+        fti->updateFrame(physicalAddress, logicalPage, pid);
+
     // 操作系统 pid = 0 不置入进程表
     if (!pid)
         return;
@@ -533,10 +540,6 @@ PageTableItem *MMU::getProcessPageTableItem(unsigned int pid, unsigned long logi
     return prti->getPageTableItem(logicalPage);
 }
 
-unsigned long MMU::getAvailableSwapAddress() {
-    // TODO
-    return 0;
-}
 
 void* MMU::getPhysicalPointer(unsigned long logicalAddress, unsigned int pid) {
     unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
@@ -556,8 +559,16 @@ bool MMU::allocProcess(unsigned int pid, const std::string &path, unsigned long 
     if (mProcessTable.size() == Config::getInstance()->OS.MAXIMUM_TASKS)
         return false;
 
+    if (!FS::getInstance()->isExist(path)) {
+        // 可执行文件不存在时不创建进程
+        return false;
+    }
+
+    // 从文件系统中读取可执行文件的长度
+    unsigned long codeLength = FS::getInstance()->getFileSize(path);
+
     // 计算该进程所需的最大维护空间
-    unsigned long ptsize = sizeof(ProcessTableItem) + Config::getInstance()->OS.MAXIMUM_TASKS * sizeof(PageTableItem);
+    unsigned long ptsize = sizeof(ProcessTableItem) + Config::getInstance()->OS.MAXIMUM_TASK_PAGE * sizeof(PageTableItem);
 
     // 寻找可用的进程表空间
     unsigned int number = 0;
@@ -590,23 +601,19 @@ bool MMU::allocProcess(unsigned int pid, const std::string &path, unsigned long 
     // 为进程分配栈区
     allocUserMemory(pid, stackPageCount << BIT, (pageCount - stackPageCount) << BIT);
 
-    // 从文件系统中读取可执行文件的长度、信息等
-    // TODO
-    unsigned long codeLength = 0;
-
     // 此时堆指针为 0，直接在整个内存区域分配代码段，因为在堆上分配，需要恢复堆大小
     allocUserMemory(pid, codeLength);
     prti->setHeapUsedSize(0);
 
     // 计算代码段的页数并将代码段拷贝入内存
     unsigned long leftSize = codeLength;
+    unsigned long index = 0;
     unsigned long codePage = (codeLength >> BIT) + ((codeLength & ((1 << BIT) - 1)) == 0 ? 0 : 1);
-    // auto handler = FS.openFile(path);
     for (unsigned long i = 0; i < codePage; i++) {
         void * dst = getPhysicalPointer(i << BIT, pid);
         unsigned long readSize = leftSize > PAGE ? PAGE : leftSize;
-        // handler->seek(codeLength - leftSize);
-        // FS.copy(dst, readSize, handler);
+        FS::getInstance()->readFile(path, dst, readSize, index);
+        index += readSize;
         leftSize -= readSize;
     }
 
@@ -638,6 +645,10 @@ bool MMU::freeProcess(unsigned int pid) {
                 if (fti)
                     fti->clear();
             }
+
+            // 占用了外部交换空间，将交换空间释放
+            if (pti->hasSwapped())
+                FS::getInstance()->clearSwapPage(pti->getSwapPage());
         }
     }
 
@@ -668,8 +679,15 @@ bool MMU::write(unsigned long logicalAddress, const void *src, unsigned long siz
 unsigned int MMU::getUsedFrameCount() {
     unsigned int count = 0;
     for (FrameTableItem * fti : mFrameTable)
-        if (fti && fti->isOccupied()) {
+        if (fti && fti->isOccupied())
             count++;
-        }
     return count;
+}
+
+void MMU::printStdError() {
+    mPageTable->stdErrPrint();
+}
+
+void MMU::usePage(unsigned long logicalPage, unsigned int pid) {
+    mPageTable->usedPage(logicalPage, pid);
 }

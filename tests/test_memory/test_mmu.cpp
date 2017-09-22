@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 #include "mmu.h"
+#include "fs.h"
 
 TEST(MMUTest, MMU_INIT) {
     EXPECT_TRUE(Config::init("", false));
@@ -36,12 +37,22 @@ TEST(MMUTest, MMU_MANAGE_BIG_SYSTEM_MEMORY) {
 }
 
 TEST(MMUTest, MMU_USER_PROCESS) {
+    FS::init();
     MMU::init();
+
+    unsigned long program_size = 1024;
+    auto space = new char[program_size];
+    // 创建用于测试的程序
+    EXPECT_TRUE(FS::getInstance()->writeFile("program1", space, program_size));
+    delete []space;
+
     unsigned int BIT = Config::getInstance()->MEM.DEFAULT_PAGE_BIT;
     unsigned int pid1 = 1;
-    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid1, ""));
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid1, "program1"));
     EXPECT_NE(nullptr, MMU::getInstance()->getProcess(pid1));
-    EXPECT_EQ(0, MMU::getInstance()->getProcess(pid1)->getHeapHeader());
+
+    // 分配了代码段 1024
+    EXPECT_EQ(program_size, MMU::getInstance()->getProcess(pid1)->getHeapHeader());
     EXPECT_EQ(Config::getInstance()->MEM.DEFAULT_PROCESS_PAGE,
               MMU::getInstance()->getProcess(pid1)->getPageCount());
     EXPECT_EQ(MMU::getInstance()->getProcess(pid1)->getStackBaseAdderss(),
@@ -62,8 +73,14 @@ TEST(MMUTest, MMU_USER_MEMORY) {
     unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
     unsigned int pid1 = 1, pid2 = 2;
 
-    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid1, ""));
-    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid2, ""));
+    auto space = new char[PAGE * 2];
+    memset(space, 0xA5, PAGE * 2);
+
+    FS::init();
+    FS::getInstance()->writeFile("program", space, PAGE * 2);
+
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid1, "program"));
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(pid2, "program"));
 
     // 分配进程后操作系统已占用的帧数
     unsigned int usedCount1 = MMU::getInstance()->getUsedFrameCount();
@@ -77,9 +94,6 @@ TEST(MMUTest, MMU_USER_MEMORY) {
     // 堆栈指针应有变化
     EXPECT_EQ(MMU::getInstance()->getProcess(pid1)->getHeapHeader(), address1 + PAGE * 3);
     EXPECT_EQ(MMU::getInstance()->getProcess(pid2)->getHeapHeader(), address2 + PAGE * 2);
-
-    auto space = new char[PAGE * 2];
-    memset(space, 0xA5, PAGE * 2);
 
     // 写操作
     EXPECT_TRUE(MMU::getInstance()->write(address1, space, PAGE * 2, pid1));
@@ -136,7 +150,6 @@ TEST(MMUTest, MMU_INFO) {
     MMU::init();
     unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
     unsigned long CAPACITY = Config::getInstance()->MEM.DEFAULT_CAPACITY;
-    unsigned long SYSTEM_PAGE = Config::getInstance()->OS.MEM.DEFAULT_OS_USED_PAGE;
 
     unsigned int usedCount1 = MMU::getInstance()->getUsedFrameCount();
     EXPECT_EQ(usedCount1, MMU::getInstance()->getAllocedFrameCount());
@@ -144,10 +157,132 @@ TEST(MMUTest, MMU_INFO) {
     unsigned long systemUsedSize = MMU::getInstance()->getSystemUsedSize();
     unsigned long leftSize = systemUsedSize & (PAGE - 1);
     unsigned long toAllocSize = leftSize + (PAGE * 4);
-    unsigned long address = MMU::getInstance()->allocSystemMemory(toAllocSize);
+    MMU::getInstance()->allocSystemMemory(toAllocSize);
     EXPECT_EQ(MMU::getInstance()->getUsedFrameCount(), MMU::getInstance()->getAllocedFrameCount());
     EXPECT_EQ(systemUsedSize + leftSize + PAGE * 4, MMU::getInstance()->getSystemUsedSize());
     EXPECT_EQ(usedCount1 + 4 + (leftSize > 0), MMU::getInstance()->getUsedFrameCount());
 
     MMU::destroy();
+}
+
+TEST(MMUTest, MMU_SWAP) {
+    // 修改配置以方便配置
+    Config::init();
+    Config::getInstance()->MEM.DEFAULT_CAPACITY = 64;
+    Config::getInstance()->OS.MEM.DEFAULT_OS_USED_PAGE = 32;
+    Config::getInstance()->OS.MAXIMUM_TASKS = 4;
+    Config::getInstance()->OS.MAXIMUM_TASK_PAGE = 64;
+    Config::getInstance()->OS.MEM.SWAP_PAGE = 4;
+    Config::getInstance()->MEM.DEFAULT_STACK_PAGE = 1;
+
+    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
+    auto space = new char[PAGE * 7];
+    memset(space, 0xA5, PAGE * 7);
+
+    FS::init("./fs", 4);
+    // 创建模拟的程序
+    EXPECT_TRUE(FS::getInstance()->writeFile("program", space, PAGE, 0, true));
+    EXPECT_EQ(PAGE, FS::getInstance()->getFileSize("program"));
+
+    MMU::init(64);
+
+    /* 进程可使用的内存只有 32 页，创建 4 个进程，每个进程占用 8 页，之后需要换页
+     * 由于进程代码段占用 1 页，堆栈段占用 1 页，因此需要堆上分配 6 页即可占满全部用户内存。
+     * */
+
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(1, "program", 64, 1));
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(2, "program", 64, 1));
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(3, "program", 64, 1));
+    EXPECT_TRUE(MMU::getInstance()->allocProcess(4, "program", 64, 1));
+
+    // 将操作系统独占内存填满
+    unsigned long usedSize = MMU::getInstance()->getSystemUsedSize();
+    unsigned long systemSize = Config::getInstance()->OS.MEM.DEFAULT_OS_USED_PAGE * PAGE;
+    unsigned long virtualSystemAddress = MMU::getInstance()->allocSystemMemory(systemSize - usedSize);
+
+    // 确保操作系统内存分配无误
+    EXPECT_TRUE(MMU::getInstance()->write(virtualSystemAddress, space, PAGE, 0));
+    EXPECT_EQ(0xA5A5A5A5, MMU::getInstance()->readHalfWord(0, virtualSystemAddress + 4));
+
+    EXPECT_EQ(systemSize, MMU::getInstance()->getSystemUsedSize());
+
+    // 确保当前帧表使用数量正确  32 + 2 * 4 = 40
+    EXPECT_EQ(40, MMU::getInstance()->getUsedFrameCount());
+
+
+    // 为四个进程各分配 6 页，此时整个系统内存空间满
+    unsigned long address1 = MMU::getInstance()->allocUserMemory(1, PAGE * 6);
+    unsigned long address2 = MMU::getInstance()->allocUserMemory(2, PAGE * 6);
+    unsigned long address3 = MMU::getInstance()->allocUserMemory(3, PAGE * 6);
+    unsigned long address4 = MMU::getInstance()->allocUserMemory(4, PAGE * 6);
+
+    // 将全部用户堆栈空间填满为 0xA5，以验证交换后的数据相同。覆盖区域包括栈区。操作系统不会被置换，因此无需覆盖。
+    EXPECT_TRUE(MMU::getInstance()->write(address1, space, PAGE * 6, 1));
+    EXPECT_TRUE(MMU::getInstance()->write(address2, space, PAGE * 6, 2));
+    EXPECT_TRUE(MMU::getInstance()->write(address3, space, PAGE * 6, 3));
+    EXPECT_TRUE(MMU::getInstance()->write(address4, space, PAGE * 6, 4));
+
+    // 将栈区域填充 0xA5
+    EXPECT_TRUE(MMU::getInstance()->write(MMU::getInstance()->getProcess(1)->getStackBaseAdderss() + 1 - PAGE, space, PAGE, 1));
+    EXPECT_TRUE(MMU::getInstance()->write(MMU::getInstance()->getProcess(2)->getStackBaseAdderss() + 1 - PAGE, space, PAGE, 2));
+    EXPECT_TRUE(MMU::getInstance()->write(MMU::getInstance()->getProcess(3)->getStackBaseAdderss() + 1 - PAGE, space, PAGE, 3));
+    EXPECT_TRUE(MMU::getInstance()->write(MMU::getInstance()->getProcess(4)->getStackBaseAdderss() + 1 - PAGE, space, PAGE, 4));
+
+    // 确保帧表已满
+    EXPECT_EQ(64, MMU::getInstance()->getUsedFrameCount());
+
+    // 确保写入无误
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(1, address1));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(4, address4));
+
+    // 再为 pid1 分配 2 页，将会从内存中置换出 2 页到交换空间
+    unsigned long address1_1 = MMU::getInstance()->allocUserMemory(1, PAGE * 2);
+
+    // 按规则应该在堆区域继续分配
+    EXPECT_EQ(address1 + PAGE * 6, address1_1);
+
+    // 帧表应该仍满
+    EXPECT_EQ(64, MMU::getInstance()->getUsedFrameCount());
+
+    // 交换空间大小应该为 2 页
+    EXPECT_EQ(PAGE * 2, FS::getInstance()->getSwapFileSize());
+
+    // 将新分配的两页置换为其他数据，保证内存中有 2 页数据开头为 0x00
+    memset(space, 0x55, PAGE * 2);
+    EXPECT_TRUE(MMU::getInstance()->write(address1_1, space, 2 * PAGE, 1));
+    EXPECT_EQ(0x5555555555555555, MMU::getInstance()->readWord(1, address1_1));
+
+    // 读取最早的 32 页，保证全部都为 0xA5
+    for (unsigned long i = 0; i < 6; i++) {
+        EXPECT_EQ(0xA5, MMU::getInstance()->readByte(1, address1 + i * PAGE));
+        EXPECT_EQ(0xA5, MMU::getInstance()->readByte(2, address2 + i * PAGE));
+        EXPECT_EQ(0xA5, MMU::getInstance()->readByte(3, address3 + i * PAGE));
+        EXPECT_EQ(0xA5, MMU::getInstance()->readByte(4, address4 + i * PAGE));
+    }
+
+    // 读栈区域保证该部分也为 0xA5
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(1, MMU::getInstance()->getProcess(1)->getStackBaseAdderss() - PAGE + 1));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(2, MMU::getInstance()->getProcess(2)->getStackBaseAdderss() - PAGE + 1));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(3, MMU::getInstance()->getProcess(3)->getStackBaseAdderss() - PAGE + 1));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(4, MMU::getInstance()->getProcess(4)->getStackBaseAdderss() - PAGE + 1));
+
+    // 帧表满
+    EXPECT_EQ(64, MMU::getInstance()->getUsedFrameCount());
+
+    // 对于一块未分配的内存，读取应当触发调页，导致某页被换出，并换入该页，由于换出的页会将原始的物理帧填充 0 ，因此读取到 0
+    EXPECT_EQ(0, MMU::getInstance()->readByte(2, address2 + 7 * PAGE));
+
+    // 此时 SWAP 空间应当为 3 * PAGE 大小
+    EXPECT_EQ(3 * PAGE, FS::getInstance()->getSwapFileSize());
+
+    // 按照 LRU 策略，被换出的是最久未被使用的 1、2、3 代码段
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(1, 0));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(2, 0));
+    EXPECT_EQ(0xA5, MMU::getInstance()->readByte(3, 0));
+
+    EXPECT_EQ(64, MMU::getInstance()->getUsedFrameCount());
+
+    delete []space;
+    MMU::destroy();
+    FS::format();
 }

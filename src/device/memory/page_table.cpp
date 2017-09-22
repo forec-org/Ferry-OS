@@ -2,6 +2,7 @@
 // Created by 王耀 on 2017/9/18.
 //
 
+#include <map>
 #include <iostream>
 #include "config.h"
 #include "page_table.h"
@@ -105,6 +106,7 @@ bool PageTable::insertPage(unsigned long logicalPage, unsigned int pid, unsigned
     // 更新页表已被占用的数量，并设置新的条目已被使用
     mUsed++;
     pti->setUsed();
+    pti->clearChanged();
     if (!pid) {
         pti->setSystem();
         pti->setHosted();
@@ -131,7 +133,7 @@ bool PageTable::schedule(unsigned long logicalPage, unsigned int pid) {
     unsigned int opid = pointer->getPid();
     unsigned long ologicalPage = pointer->getLogicalPage();
     PageTableItem *opti = MMU::getInstance()->getProcessPageTableItem(opid, ologicalPage);
-    if (opti)
+    if (opti && (opti->isChanged() || !opti->hasSwapped()))
         opti->swapOutMemory();
 
     // 更新该页表项信息，将数据指向新进程的逻辑地址
@@ -145,14 +147,7 @@ bool PageTable::schedule(unsigned long logicalPage, unsigned int pid) {
     }
 
     // 更新 LRU 链表中该页表项的信息，将该页插入头部
-    if (pointer->pre)
-        pointer->pre->next = pointer->next;
-    if (pointer->next)
-        pointer->next->pre = pointer->pre;
-    pointer->next = mLRUStackHead;
-    if (mLRUStackHead)
-        mLRUStackHead->pre = pointer;
-    mLRUStackHead = pointer;
+    usedPage(pointer);
 
     // 将更新后的页插入页表
     mPageTableMap.insert(std::make_pair(std::make_pair(logicalPage, pid), pointer));
@@ -162,10 +157,36 @@ bool PageTable::schedule(unsigned long logicalPage, unsigned int pid) {
     return true;
 }
 
+void PageTable::usedPage(PageTableItem *pti) {
+    if (!pti)
+        return;
+    if (pti->pre)
+        pti->pre->next = pti->next;
+    if (pti->next)
+        pti->next->pre = pti->pre;
+    pti->next = mLRUStackHead;
+    if (mLRUStackHead)
+        mLRUStackHead->pre = pti;
+    mLRUStackHead = pti;
+}
+
+void PageTable::usedPage(unsigned long logicalPage, unsigned int pid) {
+    PageTableItem *pti = getPageTableItem(logicalPage, pid);
+    usedPage(pti);
+}
+
 void PageTable::stdErrPrint() {
+    std::map<unsigned long, unsigned long> dict;
+    std::cerr << "===========================================" << std::endl;
     for (auto item: mPageTableMap) {
         auto id = item.first;
         auto pti = item.second;
-        std::cerr << "logical = " << id.first << ", pid = " << id.second << ", physical = " << pti->getPhysicalAddress() << std::endl;
+        if (dict.find(id.second) == dict.end())
+            dict[id.second] = 0;
+        dict[id.second]++;
+        std::cout  << "pid = " << id.second << ", logical = " << id.first << ", physical = " << pti->getPhysicalAddress() << std::endl;
+    }
+    for (auto item: dict) {
+        std::cerr << "pid = " << item.first << " has occupied " << item.second << " pages." << std::endl;
     }
 }

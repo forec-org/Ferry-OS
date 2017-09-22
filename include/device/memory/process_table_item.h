@@ -27,6 +27,7 @@ public:
                               unsigned long stackPageCount = _MEM_DEFAULT_STACK_PAGE);
     void setProcessTableNumber(unsigned int processTableNumber);
     unsigned int getProcessTableNumber();
+    unsigned int getPid();
     void setHeapAddress(unsigned long heapAddress);
     void setHeapUsedSize(unsigned long heapUsedSize);
     void insertPage(PageTableItem *pti);

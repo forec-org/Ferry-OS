@@ -7,8 +7,7 @@
 #include "fs.h"
 
 TEST(FSTest, FS_INIT) {
-    std::string path = "./fs";
-    boost::filesystem::path bpath(path);
+    std::string path = "./fs1";
     FS::init(path);
 
     // 验证文件系统根路径存在
@@ -16,22 +15,16 @@ TEST(FSTest, FS_INIT) {
     EXPECT_TRUE(boost::filesystem::exists(path));
     EXPECT_TRUE(boost::filesystem::is_directory(path));
 
-    bpath.append(".swap");
-    // 验证 SWAP 文件存在且大小为 0
-    EXPECT_TRUE(boost::filesystem::exists(bpath));
-    EXPECT_TRUE(boost::filesystem::is_regular_file(bpath));
-    EXPECT_EQ(0, boost::filesystem::file_size(bpath));
-
-    // 验证使用 FS 读取的数据与 BOOST 库读取相同
+    // 验证使用 FS 读取的数据
     EXPECT_TRUE(FS::getInstance()->isExist(".swap"));
     EXPECT_TRUE(FS::getInstance()->isFile(".swap"));
     EXPECT_EQ(0, FS::getInstance()->getFileSize(".swap"));
 
-    FS::destroy();
+    FS::format();
 }
 
 TEST(FSTest, FS_FILE_DIRECTORY) {
-    std::string path = "./fs";
+    std::string path = "./fs2";
     FS::init(path);
 
     EXPECT_TRUE(FS::getInstance()->mkdir("home"));
@@ -55,11 +48,11 @@ TEST(FSTest, FS_FILE_DIRECTORY) {
     EXPECT_TRUE(FS::getInstance()->isExist("test.dat"));
     EXPECT_TRUE(FS::getInstance()->isFile("test.dat"));
 
-    FS::destroy();
+    FS::format();
 }
 
 TEST(FSTest, FS_READ_WRITE) {
-    std::string path = "./fs";
+    std::string path = "./fs3";
     FS::init();
 
     EXPECT_TRUE(FS::getInstance()->mkdir("home/rw"));
@@ -67,7 +60,7 @@ TEST(FSTest, FS_READ_WRITE) {
     EXPECT_EQ(0, FS::getInstance()->getFileSize("home/rw/test.dat"));
 
     unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
-    char *space = new char[PAGE];
+    auto space = new char[PAGE];
     memset(space, 0xA5, PAGE);
 
     EXPECT_TRUE(FS::getInstance()->writeFile("home/rw/test.dat", space, PAGE));
@@ -78,7 +71,7 @@ TEST(FSTest, FS_READ_WRITE) {
     EXPECT_TRUE(FS::getInstance()->mvFile("home/rw/test.dat", "home/rw/child/test.dat"));
     EXPECT_EQ(PAGE, FS::getInstance()->getFileSize("home/rw/child/test.dat"));
 
-    EXPECT_TRUE(FS::getInstance()->writeFile("home/rw/child/test.dat", space, PAGE >> 1));
+    EXPECT_TRUE(FS::getInstance()->writeFile("home/rw/child/test.dat", space, PAGE >> 1, 0, true));
     EXPECT_EQ(PAGE >> 1, FS::getInstance()->getFileSize("home/rw/child/test.dat"));
 
     EXPECT_TRUE(FS::getInstance()->appendFile("home/rw/child/test.dat", space, PAGE));
@@ -86,18 +79,67 @@ TEST(FSTest, FS_READ_WRITE) {
 
     memset(space, 0, PAGE);
 
-    EXPECT_EQ(0xA5, FS::getInstance()->readFileByte("home/rw/child/test.dat", 0));
+    EXPECT_EQ('\xA5', FS::getInstance()->readFileByte("home/rw/child/test.dat", 0));
     EXPECT_TRUE(FS::getInstance()->readFile("home/rw/child/test.dat", space, PAGE, PAGE >> 1));
-    EXPECT_EQ(0xA5, space[PAGE-1]);
+    EXPECT_EQ('\xA5', space[PAGE-1]);
+    EXPECT_TRUE(FS::getInstance()->rmdir("home"));
 
     delete []space;
-    FS::destroy();
+    FS::format();
 }
 
 TEST(FSTest, FS_SWAP) {
+    // 只设置 4 页交换空间简化测试
+    FS::init("./fs4", 4);
+
+    EXPECT_EQ(4, FS::getInstance()->getSwapSpacePage());
+    EXPECT_EQ(0, FS::getInstance()->getSwapUsedPage());
+    unsigned long swapPage1 = FS::getInstance()->allocSwapPage();
+    unsigned long PAGE = Config::getInstance()->MEM.DEFAULT_PAGE_SIZE;
+    auto space = new char[PAGE];
+    memset(space, 0xA5, PAGE);
+
+    // 分配的第一页必然为 0
+    EXPECT_EQ(0, swapPage1);
+
+    // 已分配一页
+    EXPECT_EQ(PAGE, FS::getInstance()->getSwapFileSize());
+
+    EXPECT_TRUE(FS::getInstance()->dumpPageIntoSwap(space, swapPage1));
+    EXPECT_EQ(PAGE, FS::getInstance()->getSwapFileSize());
+
+    unsigned long swapPage2 = FS::getInstance()->allocSwapPage();
+    EXPECT_TRUE(FS::getInstance()->dumpPageIntoSwap(space, swapPage2));
+    EXPECT_EQ(PAGE << 1, FS::getInstance()->getSwapFileSize());
+
+    // 假设 page1 已无需再使用
+    FS::getInstance()->clearSwapPage(swapPage1);
+
+    // 已分配的第一块虽然不被占用但仍已分配
+    EXPECT_EQ(PAGE << 1, FS::getInstance()->getSwapFileSize());
+
+    swapPage1 = FS::getInstance()->allocSwapPage();
+    EXPECT_EQ(0, swapPage1);
+
+    memset(space, 0, PAGE);
+    // 导入内存
+    EXPECT_TRUE(FS::getInstance()->loadPageIntoMemory(space, swapPage2));
+    EXPECT_EQ('\xA5', space[PAGE-1]);
+
+    // 此时整个交换空间都是 '\xA5'
+    EXPECT_EQ('\xA5', FS::getInstance()->readFileByte(".swap"));
+
+    // 充满整个交换空间将导致最大页，可被检测到
+    unsigned long maxPage = FS::getInstance()->getSwapSpacePage();
+    for (unsigned long i = 2; i < maxPage; i++)
+        FS::getInstance()->allocSwapPage();
+    EXPECT_EQ(maxPage, FS::getInstance()->getSwapAllocedPage());
+    EXPECT_EQ(maxPage, FS::getInstance()->allocSwapPage());
+
+    FS::format();
 }
 
 TEST(FSTest, FS_FORMAT) {
-    FS::init("./fs");
+    FS::init("./fs5");
     FS::format();
 }

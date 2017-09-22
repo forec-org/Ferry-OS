@@ -11,11 +11,12 @@ class PageTableItem {
 private:
     unsigned long mLogicalPage;
     unsigned long mPhysicalAddress;
-    unsigned long mSwapAddress;
+    unsigned long mSwapPage;
     unsigned int mPid;
     bool mUsed;
     bool mHosted;
     bool mSwapped;
+    bool mHaveSwapped;
     bool mChanged;
     bool mInMemory;
     bool mSystem;
@@ -29,12 +30,14 @@ public:
     bool isSystem() { return mSystem; }
     bool isHosted() { return mHosted; }
     bool isUsed() { return mUsed; }
+    bool hasSwapped() { return mHaveSwapped; }
     void setSystem() { mSystem = true; }
     void setChanged() { mChanged = true; }
     void setSwapped() { mSwapped = true; }
     void setInMemory() { mInMemory = true; }
     void setHosted() { mHosted = true; }
     void setUsed() { mUsed = true; }
+    void clearChanged() { mChanged = true; }
     void clearHosted() { mHosted = false; }
     void clearUsed() { mUsed = false; }
 
@@ -48,6 +51,7 @@ public:
 
     void setLogicalPage(unsigned long logicalPage);
     unsigned long getLogicalPage();
+    unsigned long getSwapPage();
 
     unsigned int getPid();
     void setPid(unsigned int pid);

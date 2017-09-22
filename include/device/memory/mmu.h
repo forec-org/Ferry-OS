@@ -82,8 +82,6 @@ public:
     // 释放帧表中的一帧
     void freeFrame(unsigned int pid, unsigned long logicalPage);
 
-    // 获取交换空间中一块可用的页
-    unsigned long getAvailableSwapAddress();
     void *getPhysicalPointer(unsigned long logicalAddress, unsigned int pid = 0);
 
     /*
@@ -103,6 +101,10 @@ public:
 
     // 获取已占用的帧数
     unsigned int getUsedFrameCount();
+
+    void usePage(unsigned long logicalPage, unsigned int pid);
+
+    void printStdError();
 };
 
 #endif //SDOS_MEMORY_H

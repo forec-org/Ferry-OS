@@ -43,6 +43,10 @@ public:
     // 按 LRU 策略换出
     bool schedule(unsigned long logicalPage, unsigned int pid);
 
+    // 将某页提取出并置到 LRU 队列最早位置
+    void usedPage(PageTableItem * pti);
+    void usedPage(unsigned long logicalPage, unsigned int pid);
+
     void deletePageTableItem(unsigned long logicalPage, unsigned int pid);
     void clearPageForPid(unsigned int pid);
     void stdErrPrint();

@@ -47,6 +47,8 @@ public:
     bool touchFile(const std::string &path);
 
     unsigned long getFileSize(const std::string &path);
+    unsigned long getDirectorySize(const std::string &path);
+    std::vector<std::string> getFileNames(const std::string &path);
     unsigned long getSwapFileSize();
     char readFileByte(const std::string &path, unsigned long offset = 0);
     bool readFile(const std::string& path, const void * dst, unsigned long size, unsigned long start = 0);

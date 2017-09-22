@@ -29,7 +29,9 @@ public:
     } CPU;
 
     struct DISK {
+        std::string ROOT_PATH;
         unsigned int BLOCK_SIZE;              // Byte
+        unsigned long BLOCK_COUNT;            // Block
         struct BUFFER {
             unsigned int DEFAULT_BLOCK;
             unsigned int MAX_BLOCK;

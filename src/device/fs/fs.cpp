@@ -282,3 +282,42 @@ void FS::format() {
         remove_all(path);
     destroy();
 }
+
+unsigned long FS::getDirectorySize(const std::string &path) {
+    if (!isExist(path))
+        return 0;
+
+    boost::filesystem::path rootPath(getPath(path));
+    unsigned long size = 0;
+    recursive_directory_iterator end_iter;
+    for (recursive_directory_iterator iter(rootPath); iter != end_iter; iter++) {
+        try {
+            if (is_directory(*iter))
+                size += getDirectorySize(iter->path().string());
+            else
+                size += file_size(*iter);
+        } catch (const std::exception &ex) {
+            std::cerr << "DIRECTORY ITERATOR ERROR: " << ex.what() << std::endl;
+            continue;
+        }
+    }
+    return size;
+}
+
+std::vector<std::string> FS::getFileNames(const std::string &path) {
+    std::vector<std::string> names;
+    if (isDirectory(path)) {
+        directory_iterator end_iter;
+        for (directory_iterator iter(getPath(path)); iter != end_iter; iter++) {
+            std::string absolutePath = iter->path().string();
+            unsigned long index = absolutePath.find(mBasePath.string());
+            if (index != std::string::npos) {
+                absolutePath = absolutePath.substr(mBasePath.string().length());
+            }
+            names.emplace_back(absolutePath);
+        }
+    } else if (isFile(path)) {
+        names.emplace_back(path);
+    }
+    return names;
+}

@@ -74,7 +74,9 @@ bool Config::reload() {
         CPU.CPU_RATE = cpu.get<double>("CPU_RATE");
 
         /* DISK configuration */
+        DISK.ROOT_PATH = disk.get<std::string>("ROOT_PATH");
         DISK.BLOCK_SIZE = disk.get<unsigned int>("BLOCK_SIZE");
+        DISK.BLOCK_COUNT = disk.get<unsigned long>("BLOCK_COUNT");
         boost::property_tree::ptree disk_buffer = disk.get_child("BUFFER");
         DISK.BUFFER.DEFAULT_BLOCK = disk_buffer.get<unsigned int>("DEFAULT_BLOCK");
         DISK.BUFFER.MAX_BLOCK = disk_buffer.get<unsigned int>("MAX_BLOCK");
@@ -114,7 +116,9 @@ bool Config::reload() {
 void Config::loadDefault() {
     CPU.CORE_NUM = _CPU_CORE_NUM;
     CPU.CPU_RATE = _CPU_CPU_RATE;
+    DISK.ROOT_PATH = _DISK_ROOT_PATH;
     DISK.BLOCK_SIZE = _DISK_BLOCK_SIZE;
+    DISK.BLOCK_COUNT = _DISK_BLOCK_COUNT;
     DISK.BUFFER.DEFAULT_BLOCK = _DISK_BUFFER_DEFAULT_BLOCK;
     DISK.BUFFER.MAX_BLOCK = _DISK_BUFFER_MAX_BLOCK;
     DISK.BUFFER.MIN_BLOCK = _DISK_BUFFER_MIN_BLOCK;

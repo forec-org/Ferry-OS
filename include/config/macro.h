@@ -8,7 +8,9 @@
 #define _CPU_CORE_NUM 2
 #define _CPU_CPU_RATE 1.0
 
+#define _DISK_ROOT_PATH "./fs"             // 上层文件系统根目录
 #define _DISK_BLOCK_SIZE 512               // Byte  硬盘块大小
+#define _DISK_BLOCK_COUNT 8388608          // Block 硬盘块数
 #define _DISK_BUFFER_DEFAULT_BLOCK 2       // Block 硬盘缓冲区大小
 #define _DISK_BUFFER_MAX_BLOCK 16          // Block 硬盘最大缓冲区大小
 #define _DISK_BUFFER_MIN_BLOCK 0           // Block 硬盘最小缓冲区大小

@@ -29,6 +29,7 @@ TEST(FSTest, FS_FILE_DIRECTORY) {
 
     EXPECT_TRUE(FS::getInstance()->mkdir("home"));
     EXPECT_TRUE(FS::getInstance()->mkdir("forec/test/cpp"));
+    EXPECT_EQ(3, FS::getInstance()->getFileNames("").size());
     EXPECT_TRUE(FS::getInstance()->isExist("forec/test"));
     EXPECT_TRUE(FS::getInstance()->isDirectory("forec/test/cpp"));
 
@@ -48,6 +49,8 @@ TEST(FSTest, FS_FILE_DIRECTORY) {
     EXPECT_TRUE(FS::getInstance()->isExist("test.dat"));
     EXPECT_TRUE(FS::getInstance()->isFile("test.dat"));
 
+    EXPECT_EQ(0, FS::getInstance()->getDirectorySize(""));
+
     FS::format();
 }
 
@@ -64,6 +67,7 @@ TEST(FSTest, FS_READ_WRITE) {
     memset(space, 0xA5, PAGE);
 
     EXPECT_TRUE(FS::getInstance()->writeFile("home/rw/test.dat", space, PAGE));
+    EXPECT_EQ(PAGE, FS::getInstance()->getDirectorySize(""));
     EXPECT_EQ(PAGE, FS::getInstance()->getFileSize("home/rw/test.dat"));
 
     EXPECT_TRUE(FS::getInstance()->mkdir("home/rw/child"));

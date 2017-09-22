@@ -21,7 +21,7 @@ set(
         test_config/test_config_parser.cpp
         test_memory/test_mmu.cpp
         test_fs/test_fs.cpp
-)
+        ../include/os/shell/shell.h)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/config

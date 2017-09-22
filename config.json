@@ -4,7 +4,9 @@
     "CPU_RATE": 1.0
   },
   "DISK": {
+    "ROOT_PATH": "./fs",
     "BLOCK_SIZE": 512,
+    "BLOCK_COUNT": 8388608,
     "BUFFER": {
       "DEFAULT_BLOCK": 2,
       "MAX_BLOCK": 16,

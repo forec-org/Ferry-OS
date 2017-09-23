@@ -13,7 +13,7 @@ Ferry OS 提供了基于现有底层文件系统的 Shell 交互界面，其使�
 * 硬件可配置化
 * FASM 编译器
 * 信号量
-* 分页式内存管理
+* 内存分页管理
 * 虚拟机内存动态分配
 * 内存预热和虚拟内存
 
@@ -62,4 +62,4 @@ Func main {
 * FASM 编译器的跨平台支持。FlyingX 在 Windows 下开发了这个编译器，将其移植到 Forec 处整合时出现异常，在 Mac OS 无法正确解析，因此 Ferry OS 中预装的可执行文件均为 FlyingX 在 Windows 下编译后的文件。
 
 # 许可证
-本仓库中的代码均受仓库中 [LICENSE](https://github.com/forec-org/os-simulator/blob/master/LICENSE) 声明的许可证保护。
+本仓库中的代码均受仓库中 [LICENSE](https://github.com/forec-org/Ferry-OS/blob/master/LICENSE) 声明的许可证保护。

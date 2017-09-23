@@ -1,0 +1,11 @@
+Str procname "proc_print_logo.FSE"
+Func create
+{
+	Push procname
+	CallCore processCreate
+}
+
+Func main
+{
+	Call create
+}

@@ -1,0 +1,13 @@
+Str logo "Ferry OS"
+Func printlogo
+{
+LoopStart:
+	Push logo
+	CallCore Print
+	Jmp LoopStart
+}
+
+Func main
+{
+	Call printlogo
+}

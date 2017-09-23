@@ -1,0 +1,32 @@
+{
+  "CPU": {
+    //"CORE_NUM": 2,
+    "CPU_RATE": 1.0
+  },
+  "DISK": {
+    "ROOT_PATH": "./fs",
+    "BLOCK_SIZE": 512,
+    "BLOCK_COUNT": 8388608,
+    "BUFFER": {
+      "DEFAULT_BLOCK": 2,
+      "MAX_BLOCK": 16,
+      "MIN_BLOCK": 0
+    },
+    "DEFAULT_BLOCKS_PER_FILE": 4
+  },
+  "MEM": {
+    "DEFAULT_CAPACITY": 1024,
+    "DEFAULT_PROCESS_PAGE": 16,
+    "DEFAULT_STACK_PAGE": 2,
+    "DEFAULT_PAGE_BIT": 20
+  },
+  "OS": {
+    "MEM": {
+      "DEFAULT_OS_USED_PAGE": 128,
+      "SWAP_PAGE": 1024
+    },
+    "BOOT_MEMORY_KB": 512,
+    "MAXIMUM_TASKS": 64,
+    "MAXIMUM_TASK_PAGE": 4096
+  }
+}

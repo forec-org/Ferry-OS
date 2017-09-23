@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="os">
+      <UniqueIdentifier>{9625a567-5ada-4538-9fa8-99577ff586a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\oscore">
+      <UniqueIdentifier>{6fbff438-40d1-4109-8047-694dc0a8e7f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\scheduler">
+      <UniqueIdentifier>{96157c50-96f1-454f-bc1f-121ba4b9fa23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device">
+      <UniqueIdentifier>{28d74d06-10ce-4f17-bd64-a2d5a4bb5161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\processor">
+      <UniqueIdentifier>{889839f9-d691-4430-b246-8b9f24b1226d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\memory">
+      <UniqueIdentifier>{c3b303c3-85e7-4d7b-8c35-dc0e49d1d30a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\timer">
+      <UniqueIdentifier>{1820ad7e-35c9-47fc-b6cc-a2eef98ba232}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\pcb">
+      <UniqueIdentifier>{ed9103c9-edf6-47fc-94b9-c1dc0fce01b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="os\semaphore">
+      <UniqueIdentifier>{6d1421a2-7178-4ade-8986-02fda9d12fa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\intcontroller">
+      <UniqueIdentifier>{df3aeae2-27c6-41cf-a529-5d77bfebf218}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\filesystem">
+      <UniqueIdentifier>{370906b6-0be4-4060-8514-0e571d37583e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{a2d40520-b898-40d5-a93a-30abc03908ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\memory\src">
+      <UniqueIdentifier>{09f1216d-e3ac-4337-a8a4-8ab880cc8262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device\memory\include">
+      <UniqueIdentifier>{1cbbc48b-0f0b-4d55-857d-26ffac5957ad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="OS.h">
+      <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="OSCore.h">
+      <Filter>os\oscore</Filter>
+    </ClInclude>
+    <ClInclude Include="OSPcb.h">
+      <Filter>os\pcb</Filter>
+    </ClInclude>
+    <ClInclude Include="OSPcbManager.h">
+      <Filter>os\pcb</Filter>
+    </ClInclude>
+    <ClInclude Include="OSScheduler.h">
+      <Filter>os\scheduler</Filter>
+    </ClInclude>
+    <ClInclude Include="Processor.h">
+      <Filter>device\processor</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>device\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>device\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="OSSem.h">
+      <Filter>os\semaphore</Filter>
+    </ClInclude>
+    <ClInclude Include="OSSemManager.h">
+      <Filter>os\semaphore</Filter>
+    </ClInclude>
+    <ClInclude Include="IntController.h">
+      <Filter>device\intcontroller</Filter>
+    </ClInclude>
+    <ClInclude Include="CpuConfig.h">
+      <Filter>device\processor</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemConfig.h">
+      <Filter>os</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\fs\fs.h">
+      <Filter>device\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="include\config\config.h">
+      <Filter>config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\config\macro.h">
+      <Filter>config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\memory\frame_table_item.h">
+      <Filter>device\memory\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\memory\mmu.h">
+      <Filter>device\memory\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\memory\page_table.h">
+      <Filter>device\memory\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\memory\page_table_item.h">
+      <Filter>device\memory\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device\memory\process_table_item.h">
+      <Filter>device\memory\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OSCore.cpp">
+      <Filter>os\oscore</Filter>
+    </ClCompile>
+    <ClCompile Include="OSPcb.cpp">
+      <Filter>os\pcb</Filter>
+    </ClCompile>
+    <ClCompile Include="OSPcbManager.cpp">
+      <Filter>os\pcb</Filter>
+    </ClCompile>
+    <ClCompile Include="OSScheduler.cpp">
+      <Filter>os\scheduler</Filter>
+    </ClCompile>
+    <ClCompile Include="Processor.cpp">
+      <Filter>device\processor</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>device\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>device\timer</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OS.cpp">
+      <Filter>os</Filter>
+    </ClCompile>
+    <ClCompile Include="OSSem.cpp">
+      <Filter>os\semaphore</Filter>
+    </ClCompile>
+    <ClCompile Include="OSSemManager.cpp">
+      <Filter>os\semaphore</Filter>
+    </ClCompile>
+    <ClCompile Include="IntController.cpp">
+      <Filter>device\intcontroller</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\config\config.cpp">
+      <Filter>config</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\fs\fs.cpp">
+      <Filter>device\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\memory\frame_table_item.cpp">
+      <Filter>device\memory\src</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\memory\mmu.cpp">
+      <Filter>device\memory\src</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\memory\page_table.cpp">
+      <Filter>device\memory\src</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\memory\page_table_item.cpp">
+      <Filter>device\memory\src</Filter>
+    </ClCompile>
+    <ClCompile Include="include\device\memory\process_table_item.cpp">
+      <Filter>device\memory\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+</Project>

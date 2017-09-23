@@ -16,14 +16,18 @@ private:
 public:
     explicit Shell(const std::string &basePath) {
         this->mBasePath = basePath;
+        mCurrentPath = "/";
     }
     void reload(const std::string &basePath) {
         mCurrentPath = "/";
         mBasePath = basePath;
     }
     void run();
+    void invalid_args();
+    void no_such_file_or_directory(const std::string & path);
+    std::string appendPath(const std::string &path, bool absolute = true);
     std::string generatePath(const std::string &path);
-    std::string getOp(const std::string &command);
+    std::string getOp(const std::string &command, char split = ' ');
     std::vector<std::string> getArgs(const std::string &command);
 };
 

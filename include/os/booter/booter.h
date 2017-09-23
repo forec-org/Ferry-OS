@@ -19,11 +19,14 @@ public:
     static void wait(unsigned int mseconds);
     static void ERROR(const std::string & msg);
     static void WARNING(const std::string & msg);
+    static void RED(const std::string &msg);
+    static void YELLOW(const std::string &msg);
     static void BACKGROUND();
     static void CLEAR();
     static void SUCCESS(const std::string &msg = "SUCCESS");
     static void SHOW_CURSOR();
     static void LOGO();
+    static void RUN();
 };
 
 #endif //SDOS_BOOTER_H

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include "fs.h"
+#include <ctime>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -110,22 +111,31 @@ bool FS::cpFile(const std::string &path, const std::string &newpath) {
     try {
         copy_file(getPath(path), getPath(newpath), copy_option::overwrite_if_exists);
     } catch (filesystem_error &e) {
-        std::cerr << "Copy Error: " << e.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool FS::cpDir(const std::string &path, const std::string &newpath) {
+    if (!isExist(path))
+        return false;
+    try {
+        copy_directory(getPath(path), getPath(newpath));
+    } catch (filesystem_error &e) {
         return false;
     }
     return true;
 }
 
 bool FS::mvFile(const std::string &path, const std::string &newpath) {
-    if (!isExist(path))
-        return false;
-    try {
-        copy_file(getPath(path), getPath(newpath), copy_option::overwrite_if_exists);
-    } catch (filesystem_error &e) {
-        std::cerr << "Rename Error: " << e.what() << std::endl;
-        return false;
-    }
+    cpFile(path, newpath);
     rmFile(path);
+    return true;
+}
+
+bool FS::mvDir(const std::string &path, const std::string &newpath) {
+    cpDir(path ,newpath);
+    rmdir(path);
     return true;
 }
 
@@ -245,7 +255,7 @@ char FS::readFileByte(const std::string &path, unsigned long offset) {
 
 bool FS::writeFile(const std::string &path, const void *src, unsigned long size, unsigned long start, bool trunc) {
     std::ofstream writer;
-    if (!isExist(path) || trunc) {
+    if (!isExist(path) || isDirectory(path) || trunc) {
         writer.open(getPath(path), std::ios::out | std::ios::binary);
         if (writer.is_open())
             writer.close();
@@ -297,7 +307,6 @@ unsigned long FS::getDirectorySize(const std::string &path) {
             else
                 size += file_size(*iter);
         } catch (const std::exception &ex) {
-            std::cerr << "DIRECTORY ITERATOR ERROR: " << ex.what() << std::endl;
             continue;
         }
     }
@@ -309,15 +318,18 @@ std::vector<std::string> FS::getFileNames(const std::string &path) {
     if (isDirectory(path)) {
         directory_iterator end_iter;
         for (directory_iterator iter(getPath(path)); iter != end_iter; iter++) {
-            std::string absolutePath = iter->path().string();
-            unsigned long index = absolutePath.find(mBasePath.string());
-            if (index != std::string::npos) {
-                absolutePath = absolutePath.substr(mBasePath.string().length());
-            }
-            names.emplace_back(absolutePath);
+            names.emplace_back(iter->path().filename().string());
         }
     } else if (isFile(path)) {
-        names.emplace_back(path);
+        names.emplace_back(boost::filesystem::path(path).filename().string());
     }
     return names;
+}
+
+std::string FS::lastWriteTime(const std::string &path) {
+    if (!isExist(path))
+        return "";
+    time_t t = last_write_time(getPath(path));
+    std::string res = std::string(ctime(&t));
+    return res.substr(0, res.length() - 1);
 }

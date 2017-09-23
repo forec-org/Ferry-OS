@@ -42,9 +42,12 @@ public:
     bool rmFile(const std::string &path);
     bool cpFile(const std::string &path, const std::string &newpath);
     bool mvFile(const std::string &path, const std::string &newpath);
+    bool cpDir(const std::string &path, const std::string &newpath);
+    bool mvDir(const std::string &path, const std::string &newpath);
     bool mkdir(const std::string &path);
     bool rmdir(const std::string &path);
     bool touchFile(const std::string &path);
+    std::string lastWriteTime(const std::string &path);
 
     unsigned long getFileSize(const std::string &path);
     unsigned long getDirectorySize(const std::string &path);

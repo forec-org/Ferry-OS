@@ -14,7 +14,7 @@ TEST(ConfigTest, CONFIG_INIT) {
 TEST(ConfigTest, CONFIG_DEFAULT) {
     EXPECT_EQ(true, Config::init("none_exist.json", false));
     EXPECT_EQ(2, Config::getInstance()->CPU.CORE_NUM);
-    EXPECT_EQ(1.0, Config::getInstance()->CPU.CPU_RATE);
+    EXPECT_EQ(5, Config::getInstance()->CPU.CPU_RATE);
     EXPECT_EQ(512, Config::getInstance()->DISK.BLOCK_SIZE);
     EXPECT_EQ(4, Config::getInstance()->DISK.DEFAULT_BLOCKS_PER_FILE);
     EXPECT_EQ(1, Config::getInstance()->MEM.DEFAULT_STACK_PAGE);

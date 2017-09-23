@@ -24,4 +24,5 @@ target_link_libraries(
         oscore
         interrupter
         scheduler
+        compiler
 )

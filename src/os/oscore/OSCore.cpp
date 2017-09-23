@@ -1,10 +1,13 @@
+#include <vector>
 #include "OSCore.h"
 #include "OSPcbManager.h"
 #include "OSSemManager.h"
-#include "../../../include/os/scheduler/OSScheduler.h"
+#include "OSScheduler.h"
 #include "fs.h"
 #include "processor.h"
 #include "mmu.h"
+#include "printer.h"
+#include "voicer.h"
 
 
 OSCore *OSCore::gInstance = NULL;
@@ -240,11 +243,9 @@ void OSCore::print(const std::string & text) {
 		return;
 	}
 
-	console << getPcbCurr()->getPid() << ": " << text << std::endl;
+	console << getPcbCurr()->getPid() << ":" << text << std::endl;
 
 	console.close();
-	//printf(text.c_str());
-	//printf("\n");
 }
 
 void OSCore::getProcStates(std::vector<ProcState>& info) {
@@ -469,9 +470,36 @@ void OSCore::api_sem_create() {
 }
 
 void OSCore::api_voice() {
+    INT32 procNameIndex;
+    INT32 nameSize;
+    CHAR buffer[1024];
+
+    mCPU->pop(procNameIndex);					//获取字符串索引
+    nameSize = mMem->readHalfWord(mScheduler->getCurrPcb()->getPid(), mCPU->getDS() + procNameIndex);
+    UINT32 nameStart = mCPU->getDS() + procNameIndex + 4;
+    for (UINT32 index = 0; index < nameSize; ++index) {
+        buffer[index] = mMem->readWord(mScheduler->getCurrPcb()->getPid(), nameStart + index);
+    }
+    buffer[nameSize] = '\0';
+    Voicer::speak(buffer);
 }
 
 void OSCore::api_printer() {
+    INT32 procNameIndex;
+    INT32 nameSize;
+    CHAR buffer[1024];
+
+    mCPU->pop(procNameIndex);					//获取字符串索引
+    nameSize = mMem->readHalfWord(mScheduler->getCurrPcb()->getPid(), mCPU->getDS() + procNameIndex);
+    UINT32 nameStart = mCPU->getDS() + procNameIndex + 4;
+    for (UINT32 index = 0; index < nameSize; ++index) {
+        buffer[index] = mMem->readWord(mScheduler->getCurrPcb()->getPid(), nameStart + index);
+    }
+    buffer[nameSize] = '\0';
+    std::vector<std::string> result = Printer::PRINT(buffer);
+    for (std::string line: result)
+        print(line);
+    mCPU->setReg(1, !result.empty());
 }
 
 UINT16 OSCore::getFreeTime() {
@@ -591,7 +619,7 @@ void OSCore::init() {
 
 	initIdle();								
 
-	initTestProc();
+//	initTestProc();
 
 	initApiTable();
 }

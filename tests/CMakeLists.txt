@@ -54,6 +54,7 @@ target_link_libraries(
         fs
         shell
         scheduler
+        compiler
 )
 
 target_link_libraries(runUnitTests gtest gtest_main)

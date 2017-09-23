@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <vector>
 #include <boost/filesystem.hpp>
 #include "mmu.h"
 #include "fs.h"
@@ -15,6 +16,9 @@
 #include <thread>
 #include <iomanip>
 #include <cstdlib>
+#include "compiler.h"
+#include "OSCore.h"
+
 
 int getkey() {
     int character;
@@ -241,6 +245,18 @@ void Shell::run() {
     cout << "© 2017 Ferry OS Team. All rights reserved." << endl << endl;
 
     string command;
+    string originOp;
+
+    std::vector<string> stateMap;
+    stateMap.emplace_back("READY");
+    stateMap.emplace_back("RUNNING");
+    stateMap.emplace_back("WAITING");
+    stateMap.emplace_back("SUSPEND");
+    stateMap.emplace_back("TERMINATED");
+    stateMap.emplace_back("SWAPPED_READY");
+    stateMap.emplace_back("SWAPPED_WAITING");
+    stateMap.emplace_back("SWAPPED_SUSPEND");
+
     for (;;) {
         command.clear();
         std::cout << mCurrentPath << ">";
@@ -249,6 +265,7 @@ void Shell::run() {
 
         // 截取用户输入的最开始的命令
         string Op = getOp(command);
+        originOp = Op;
         std::transform(Op.begin(), Op.end(), Op.begin(), ::tolower);
         vector<string> args = getArgs(command);
 
@@ -571,8 +588,8 @@ void Shell::run() {
                     cout << "\33[s";   // 保存光标位置
 
                     // 获得进程信息
-                    std::vector<int> info;
-                    // getProcStates(info);
+                    std::vector<ProcState> info;
+                    OSCore::getInstance()->getProcStates(info);
 
                     // 打印进程概括信息
                     cout << "Processes: " << info.size() << " total, "
@@ -581,8 +598,9 @@ void Shell::run() {
                          << endl;   // 1
 
                     // 打印 CPU 使用信息
-                    float cpu_percent = 1.0 / time; //getCpuUsage();
-                    cout << "CPU usage: " << setprecision(2) << (cpu_percent * 100) << "%, "
+                    float cpu_percent = OSCore::getInstance()->getCpuUsage();
+                    cout << "CPU usage: " << setiosflags(ios::fixed) << setprecision(2)
+                         << (cpu_percent * 100) << "%, "
                          << ((1.0 - cpu_percent) * 100) << "% idle"
                          << endl;   // 2
 
@@ -601,6 +619,11 @@ void Shell::run() {
                          << endl;   // 4
 
                     // 打印虚拟空间信息
+                    cout << "VirtualMem: " << FS::getInstance()->getSwapUsedPage() << "P("
+                         << (FS::getInstance()->getSwapUsedPage() << Config::getInstance()->MEM.DEFAULT_PAGE_BIT)
+                         << "B) used, " << FS::getInstance()->getSwapAllocedPage() << "P(alloced)/ "
+                         << FS::getInstance()->getSwapSpacePage() << "P(capability)"
+                         << endl;   // 5
 
                     // 打印内存百分条
                     cout << "MEM: [";
@@ -611,21 +634,48 @@ void Shell::run() {
                     for (unsigned long i = percent; i < 50; i++)
                         cout << "|";
                     cout << "]"
-                         << endl;   // 5
+                         << endl;   // 6
 
                     // 打印进程详细信息
-                    BOOTER::YELLOW("Pid\tProcess\t\tState\t\tSwitch\t\tCycles");
-                    cout << endl;   // 6
+                    BOOTER::YELLOW("Pid\t\tState\t\tSwitch\t\tCycles\t\tProcess");
+                    cout << "\33[?25l";   // 隐藏光标
+                    cout << endl;   // 7
 
-                    // for ()
+                    for (ProcState pro: info) {
+                        boost::filesystem::path ppath(pro.procName);
+                        std::string filename = ppath.filename().string();
+                        std::string extention = ppath.extension().string();
+                        if (!extention.empty()) {
+                            if (filename.find(extention) != std::string::npos)
+                                filename = filename.substr(0, filename.find(extention));
+                        }
+
+                        unsigned int state = pro.state;
+                        unsigned int count = 0;
+                        while (state) {
+                            count ++;
+                            state >>= 1;
+                        }
+
+                        std::string stateStr = "UNKNOWN";
+                        if (state < stateMap.size())
+                            stateStr = stateMap[state];
+
+                        cout << pro.pid << "\t\t"
+                             << stateStr << "\t\t"
+                             << pro.switchCnt << "\t\t"
+                             << pro.totalCycles << "\t\t"
+                             << filename
+                             << endl;
+                    }   // info.size()
 
                     cout << "\33[u"; // 恢复光标
                     cout << "\33[s"; // 保存光标
 
                     BOOTER::wait(1000); // 等待 1 s
 
-                    for (unsigned int i = 0; i < 6 + info.size(); i++) {
-                        cout << "\33[K\33[B";
+                    for (unsigned int i = 0; i <= 7 + info.size(); i++) {
+                        cout << "\33[K\33[1B";
                     }
                     cout << "\33[u"; // 恢复光标
                 }
@@ -639,19 +689,18 @@ void Shell::run() {
             if (!args.empty())
                 invalid_args();
             else {
-                std::string relativePath = appendPath(Op, false);
+                std::string relativePath = appendPath(originOp, false);
                 if (!FS::getInstance()->isExist(relativePath)) {
-                    no_such_file_or_directory(Op);
+                    no_such_file_or_directory(originOp);
                 } else if (!FS::getInstance()->isFile(relativePath)) {
-                    BOOTER::ERROR("'" + Op + "' is a directory");
+                    BOOTER::ERROR("'" + originOp + "' is a directory");
                 } else {
                     unsigned char err = 1;
-                    int pid;
-                    //  pid = OSCore::getInstance()->createProcess(relativePath, err);
+                    int pid = OSCore::getInstance()->processCreate(relativePath.c_str(), err);
                     if (err != 0) {
-                        BOOTER::ERROR("file '" + Op + "' is not a valid executable format");
+                        BOOTER::ERROR("file '" + originOp + "' is not a valid executable format");
                     } else {
-                        BOOTER::SUCCESS("'" + Op + "' is running as a new process (PID = " + std::to_string(pid) + ")");
+                        BOOTER::SUCCESS("'" + originOp + "' is running as a new process (PID = " + std::to_string(pid) + ")");
                     }
                 }
             }
@@ -663,15 +712,31 @@ void Shell::run() {
                 std::string sourceFile = appendPath(args[0], false);
                 int code = 1;
                 if (args.size() == 1) {
-                    // code = FASM::getInstance()->exec(sourceFile.c_str());
+                    code = FASM::getInstance()->Exec(sourceFile.c_str());
                 } else {
                     std::string dstFile = appendPath(args[1], false);
-                    // code = FASM::getInstance()->exec(sourceFile.c_str(), dstFile.c_str());
+                    code = FASM::getInstance()->Exec(sourceFile.c_str(), dstFile.c_str());
                 }
                 if (code == 0) {
                     BOOTER::SUCCESS("'" + args[0] + "' has been compiled");
                 } else {
                     BOOTER::ERROR("lexical error in '" + args[0] + "'");
+                }
+            }
+        } else if (Op == "kill") {
+            // 结束进程
+            if (args.size() != 1)
+                invalid_args();
+            else {
+                int pid = -1;
+                try {
+                    pid = std::stoi(args[0]);
+                    if (OSCore::getInstance()->processDelete(pid))
+                        BOOTER::ERROR("cannot find process with Pid = " + std::to_string(pid));
+                    else
+                        BOOTER::SUCCESS("process (Pid = " + std::to_string(pid) + ") is terminated");
+                } catch(std::invalid_argument &e) {
+                    BOOTER::ERROR(args[0] + " is not a valid pid number");
                 }
             }
         } else {

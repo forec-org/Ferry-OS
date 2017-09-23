@@ -42,6 +42,7 @@ public:
         commands.emplace_back("head");
         commands.emplace_back("tail");
         commands.emplace_back("compile");
+        commands.emplace_back("kill");
     }
     void reload(const std::string &basePath) {
         lastPosition = 0;

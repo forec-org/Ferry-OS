@@ -14,6 +14,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/include/device/timer
         ${PROJECT_SOURCE_DIR}/include/device/processor
         ${PROJECT_SOURCE_DIR}/include/os/scheduler
+        ${PROJECT_SOURCE_DIR}/include/os/compiler
 )
 
 add_library(booter STATIC ${SRC_LIST})

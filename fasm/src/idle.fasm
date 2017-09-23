@@ -1,0 +1,11 @@
+Func loop
+{
+LoopStart:
+	CallCore incFreeTime
+	Jmp LoopStart
+}
+
+Func main
+{
+	Call loop
+}

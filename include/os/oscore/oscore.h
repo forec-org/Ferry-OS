@@ -73,8 +73,8 @@ public:
 	void			api_sem_post();							//参数为信号量id
 	void			api_sem_delete();						//参数为信号量id
 	void			api_sem_create();						//参数为信号量初始计数值和最大计数值
-	void			api_voice();							//
-	void			api_printer();							//
+	void			api_voice();							//发声，参数为要读出的字符串
+	void			api_printer();							//打印艺术字，参数为打印的字符串
 
 public:											
 	

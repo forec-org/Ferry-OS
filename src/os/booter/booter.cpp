@@ -44,7 +44,7 @@ void BOOTER::SHOW_CURSOR() {
 }
 
 void BOOTER::SUCCESS(const std::string &msg) {
-    cout << "  \033[36m" << msg << ""; // 绿色成功
+    cout << "\033[36m" << msg; // 绿色成功
     CLEAR();
     cout << endl;
     BACKGROUND();
@@ -103,6 +103,8 @@ void BOOTER::LOGO() {
 }
 
 void BOOTER::boot(const std::string &configPath, bool debug) {
+    unsigned long width = 50;
+
     system("clear");
     BACKGROUND();
     if (!exists(configPath)) {
@@ -112,7 +114,8 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     }
 
     // 加载虚拟机配置
-    cout << "LOADING VIRTUAL MACHINE CONFIG ";
+    std::string loadVM = "LOADING VIRTUAL MACHINE CONFIG ";
+    cout << loadVM;
     if (!Config::init(configPath, debug)) {
         ERROR("VIRTUAL MACHINE IS UNABLE TO BOOT WITH CONFIG FILE '" + configPath + "'!");
         BACKGROUND();
@@ -124,15 +127,16 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     IntController::getInstance()->init();
     Timer::getInstance()->init();
 
-    loading(3, 5, 100);
+    loading(3, width - loadVM.length(), 10);
     SUCCESS();
     wait(400);
 
     // 加载文件系统
-    cout << "DETECTING FILE SYSTEM ";
+    std::string detectFS = "DETECTING FILE SYSTEM ";
+    cout << detectFS;
     FS::init(Config::getInstance()->DISK.ROOT_PATH);
 
-    loading(1, 14, 120);
+    loading(1, width - detectFS.length(), 30);
     SUCCESS();
     cout << "FINDING ONE HDD DISK: " << endl;
     cout << "/disk/sda:" << endl;
@@ -144,25 +148,28 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     wait(300);
 
     // 加载内存
-    cout << "VERIFYING MEMORY VALIDATION ";
+    std::string verifyMem = "VERIFYING MEMORY VALIDATION ";
+    cout << verifyMem;
     MMU::init(Config::getInstance()->MEM.DEFAULT_CAPACITY);
 
 
-    loading(1, 8, 100);
+    loading(1, width - verifyMem.length(), 20);
     SUCCESS();
     cout << "FINDING ONE RAM: " << endl;
     cout << "    RAM SIZE: " << (Config::getInstance()->MEM.DEFAULT_CAPACITY << Config::getInstance()->MEM.DEFAULT_PAGE_BIT) << " Bytes" << endl;
     cout << "    RAM RATE: 1600 MHz" << endl;
     cout << "    PAGE SIZE: " << Config::getInstance()->MEM.DEFAULT_PAGE_SIZE << " Bytes" << endl << endl;
 
-    cout << "INITIALIZE FRAME TABLE ";
-    loading(2, 7, 100);
+    std::string initialFrame = "INITIALIZE FRAME TABLE ";
+    cout << initialFrame;
+    loading(1, width - initialFrame.length(), 30);
     SUCCESS();
 
-    cout << "DETECTING CPU INFO  ";
+    std::string detectCPU = "DETECTING CPU INFO  ";
+    cout << detectCPU;
     Processor::getInstance()->init();
     OSCore::getInstance()->init();
-    loading(1, 10, 30);
+    loading(1, width - detectCPU.length(), 15);
     SUCCESS();
     cout << "FIND ONE PROCESSOR: " << endl;
     cout << "/proc/cpuinfo: " << endl;
@@ -171,8 +178,9 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     cout << "    ARCHITECTURE: x86_f" << endl << endl;
 
     LOGO();
-    cout << "LOADING Ferry OS  ";
-    loading(1, 10, 150);
+    std::string loadOS = "LOADING Ferry OS  ";
+    cout << loadOS;
+    loading(1, width - loadOS.length(), 20);
     SUCCESS();
 
 
@@ -183,11 +191,12 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     std::thread osThread = std::thread([](){ OSCore::getInstance()->start(); });
 
 
-    loading(1, 10, 40, '>');
-    loading(1, 20, 200, '>');
-    loading(1, 10, 300, '>');
-    loading(1, 30, 80, '>');
-    cout << endl;
+    width += 9;
+//    loading(1, width / 5, 40, '>');
+//    loading(1, width / 4, 200, '>');
+//    loading(1, width - (width / 2) - (width / 4) - (width / 5), 300, '>');
+//    loading(1, width / 2, 80, '>');
+//    cout << endl;
     system("clear");
 
 
@@ -199,6 +208,7 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
 }
 
 void BOOTER::shutdown() {
+    unsigned long width = 50;
     BACKGROUND();
     system("clear");
 
@@ -206,29 +216,28 @@ void BOOTER::shutdown() {
     cout << endl;
 
     string s0 = "WAITING FOR ALL PROCESSES STOP ";
+    Timer::release();
     Processor::release();
     cout << s0;
-    loading(1, 50 - s0.length(), 40, '>');
+    loading(1, width - s0.length(), 40, '>');
     SUCCESS();
 
     string s1 = "CLEARING USER PROCESSES AND MEMORY ";
     MMU::destroy();
     cout << s1;
-    loading(1, 50 - s1.length(), 70, '>');
+    loading(1, width - s1.length(), 70, '>');
     SUCCESS();
 
     string s2 = "CLEARING SYSTEM MEMORY ";
     FS::destroy();
     cout << s2;
-    loading(1, 50 - s2.length(), 45, '>');
+    loading(1, width - s2.length(), 45, '>');
     SUCCESS();
 
-    string s3 = "SHUTING DOWN ";
-    OSCore::release();
-    Timer::release();
+    string s3 = "SHUTTING DOWN ";
     IntController::release();
     cout << s3;
-    loading(1, 50 - s3.length(), 80, '>');
+    loading(1, width - s3.length(), 80, '>');
     SUCCESS();
     wait(800);
     cout << "GOOD BYE!" << endl;

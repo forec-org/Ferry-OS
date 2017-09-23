@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <atomic>
 #include <thread>
+#include <iomanip>
 #include <cstdlib>
 
 int getkey() {
@@ -23,7 +24,7 @@ int getkey() {
     // 设置命令行为 raw mode
     tcgetattr(fileno(stdin), &orig_term_attr);
     memcpy(&new_term_attr, &orig_term_attr, sizeof(struct termios));
-    new_term_attr.c_lflag &= ~(ECHO|ICANON);
+    new_term_attr.c_lflag &= ~(ECHO | ICANON);
     new_term_attr.c_cc[VTIME] = 0;
     new_term_attr.c_cc[VMIN] = 0;
     tcsetattr(fileno(stdin), TCSANOW, &new_term_attr);
@@ -54,7 +55,7 @@ void Shell::invalid_args() {
     BOOTER::ERROR("invalid argument count or format");
 }
 
-void Shell::no_such_file_or_directory(const string& path) {
+void Shell::no_such_file_or_directory(const string &path) {
     BOOTER::ERROR("no such file or directory: " + path);
 }
 
@@ -83,8 +84,7 @@ std::string Shell::appendPath(const std::string &path, bool absolute) {
             if (bpath.string() == "/")
                 continue;
             bpath = bpath.parent_path();
-        }
-        else
+        } else
             bpath.append(first);
     } while (first != "");
 
@@ -129,7 +129,7 @@ std::vector<std::string> Shell::getArgs(const std::string &cm) {
             while (command.find(' ') == 0)
                 command = command.substr(1);
             command = command.substr(Op.length());
-        } while(!Op.empty());
+        } while (!Op.empty());
     }
     args.erase(args.begin());
     return args;
@@ -162,7 +162,7 @@ std::string Shell::auto_complete() {
             case 39:  // 方向键右
                 if (cursor >= command.length())
                     break;
-                cursor ++;
+                cursor++;
                 break;
             case 37:  // 方向键左
                 if (cursor <= 0)
@@ -229,7 +229,7 @@ std::string Shell::auto_complete() {
                 break;
             default:
                 if (32 <= key && key <= 126)
-                    command = command.append(1, (char)key);
+                    command = command.append(1, (char) key);
                 break;
         }
     }
@@ -241,7 +241,7 @@ void Shell::run() {
     cout << "© 2017 Ferry OS Team. All rights reserved." << endl << endl;
 
     string command;
-    for(;;) {
+    for (;;) {
         command.clear();
         std::cout << mCurrentPath << ">";
         getline(cin, command);
@@ -256,16 +256,14 @@ void Shell::run() {
             // 创建文件
             if (args.size() != 1)
                 invalid_args();
-            else
-                if (!FS::getInstance()->touchFile(appendPath(args[0], false)))
-                    BOOTER::ERROR("cannot create file: " + args[0]);
-        } else if (Op == "mkdir"){
+            else if (!FS::getInstance()->touchFile(appendPath(args[0], false)))
+                BOOTER::ERROR("cannot create file: " + args[0]);
+        } else if (Op == "mkdir") {
             // 创建目录
             if (args.size() != 1)
                 invalid_args();
-            else
-                if (!FS::getInstance()->mkdir(appendPath(args[0], false)))
-                    BOOTER::ERROR("cannot create directory: " + args[0]);
+            else if (!FS::getInstance()->mkdir(appendPath(args[0], false)))
+                BOOTER::ERROR("cannot create directory: " + args[0]);
         } else if (Op == "cd") {
             // 进入目录
             if (args.size() != 1)
@@ -390,11 +388,16 @@ void Shell::run() {
             }
         } else if (Op == "watch") {
             // 查看输出
+            bool cont = true;
+            if (!args.empty() && args[1] == "-c") {
+                cont = false;
+            }
+
             unordered_set<unsigned int> pidList;
             for (string id: args) {
                 try {
                     pidList.insert(std::stoi(id));
-                } catch (std::invalid_argument & ) {
+                } catch (std::invalid_argument &) {
                     continue;
                 }
             }
@@ -416,6 +419,12 @@ void Shell::run() {
                 }
             }, &quit);
             listenKey.detach();
+
+            // 从上次看过处继续
+            if (cont) {
+                lastPos = lastPosition;
+            }
+
             while (!quit) {
                 reader.open(FS::getInstance()->getPath(".console"), ios::in);
                 if (reader.fail()) {
@@ -426,11 +435,33 @@ void Shell::run() {
                 long long int temp = reader.tellg();
                 reader.seekg(lastPos, ios::beg);
                 lastPos = temp;
-                while (!reader.eof()) {
-                    std::getline(reader, lineLog);
-                    if (!reader.eof())
-                        cout << lineLog << endl;
+                if (pidList.empty()) {
+                    while (!reader.eof()) {
+                        std::getline(reader, lineLog);
+                        if (!reader.eof()) {
+                            if (lineLog.find(':') != string::npos)
+                                lineLog = lineLog.substr(lineLog.find(':') + 1);
+                            cout << lineLog << endl;
+                        }
+                    }
+                } else {
+                    while (!reader.eof()) {
+                        std::getline(reader, lineLog);
+                        if (!reader.eof()) {
+                            if (lineLog.find(':') == string::npos)
+                                continue;
+                            string pid = lineLog.substr(0, lineLog.find(':'));
+                            try {
+                                int ipid = std::stoi(pid);
+                                if (pidList.find(ipid) != pidList.end())
+                                    cout << lineLog.substr(lineLog.find(':') + 1) << endl;
+                            } catch (std::exception &e) {
+                                continue;
+                            }
+                        }
+                    }
                 }
+                lastPosition = temp;
                 reader.close();
                 BOOTER::wait(600);
             }
@@ -440,7 +471,7 @@ void Shell::run() {
                 invalid_args();
             } else {
                 string relativePath = args[0];
-                relativePath = FS::getInstance()->getPath(relativePath);
+                relativePath = FS::getInstance()->getPath(appendPath(relativePath, false));
                 string cm = Op + " " + relativePath;
                 system(cm.c_str());
             }
@@ -449,7 +480,7 @@ void Shell::run() {
                 invalid_args();
             else {
                 std::ifstream reader;
-                reader.open(FS::getInstance()->getPath(args[0]), ios::in);
+                reader.open(FS::getInstance()->getPath(appendPath(args[0], false)), ios::in);
                 if (reader.fail()) {
                     BOOTER::ERROR("cannot open file '" + args[0] + "'");
                 } else {
@@ -471,13 +502,13 @@ void Shell::run() {
                 if (args.size() == 2) {
                     try {
                         arg_num = std::stoi(args[1]);
-                    } catch (std::invalid_argument & e) {
+                    } catch (std::invalid_argument &e) {
                         BOOTER::WARNING("your argument '" + args[1] + "' is invalid");
                         arg_num = 10;
                     }
                 }
                 std::ifstream reader;
-                reader.open(FS::getInstance()->getPath(args[0]), ios::in);
+                reader.open(FS::getInstance()->getPath(appendPath(args[0], false)), ios::in);
                 if (reader.fail()) {
                     BOOTER::ERROR("cannot open file '" + args[0] + "'");
                 } else {
@@ -501,13 +532,13 @@ void Shell::run() {
                 if (args.size() == 2) {
                     try {
                         arg_num = std::stoi(args[1]);
-                    } catch (std::invalid_argument & e) {
+                    } catch (std::invalid_argument &e) {
                         BOOTER::WARNING("your argument '" + args[1] + "' is invalid");
                         arg_num = 10;
                     }
                 }
                 std::ifstream reader;
-                reader.open(FS::getInstance()->getPath(args[0]), ios::in | ios::ate);
+                reader.open(FS::getInstance()->getPath(appendPath(args[0], false)), ios::in | ios::ate);
                 if (reader.fail()) {
                     BOOTER::ERROR("cannot open file '" + args[0] + "'");
                 } else {
@@ -534,12 +565,115 @@ void Shell::run() {
             if (!args.empty())
                 invalid_args();
             else {
-                BOOTER::RED("WAITING");
-                cout << endl;
+                cout << "\33[?25l";  // 隐藏光标
+                unsigned int time = 0;
+                while (time++ < 10) {
+                    cout << "\33[s";   // 保存光标位置
+
+                    // 获得进程信息
+                    std::vector<int> info;
+                    // getProcStates(info);
+
+                    // 打印进程概括信息
+                    cout << "Processes: " << info.size() << " total, "
+                         << (info.size() == 0 ? 0 : 1) << " running, "
+                         << (info.size() == 0 ? 0 : info.size() - 1) << " sleeping"
+                         << endl;   // 1
+
+                    // 打印 CPU 使用信息
+                    float cpu_percent = 1.0 / time; //getCpuUsage();
+                    cout << "CPU usage: " << setprecision(2) << (cpu_percent * 100) << "%, "
+                         << ((1.0 - cpu_percent) * 100) << "% idle"
+                         << endl;   // 2
+
+                    // 打印内存使用信息
+                    unsigned long leftPage =
+                            MMU::getInstance()->getCapacity() - MMU::getInstance()->getUsedFrameCount();
+                    cout << "MemRegions: " << MMU::getInstance()->getCapacity() << " total, "
+                         << leftPage << " Pages(" << (leftPage << Config::getInstance()->MEM.DEFAULT_PAGE_BIT)
+                         << "B) resident"
+                         << endl;   // 3
+
+                    // 打印活动内存信息
+                    cout << "MemActive: " << MMU::getInstance()->getAllocedFrameCount() << " hot, "
+                         << (MMU::getInstance()->getCapacity() - MMU::getInstance()->getAllocedFrameCount())
+                         << " unused"
+                         << endl;   // 4
+
+                    // 打印虚拟空间信息
+
+                    // 打印内存百分条
+                    cout << "MEM: [";
+                    unsigned int usedFrame = MMU::getInstance()->getUsedFrameCount();
+                    unsigned long percent = usedFrame * 50 / MMU::getInstance()->getCapacity();
+                    for (unsigned int i = 0; i < percent; i++)
+                        cout << "█";
+                    for (unsigned long i = percent; i < 50; i++)
+                        cout << "|";
+                    cout << "]"
+                         << endl;   // 5
+
+                    // 打印进程详细信息
+                    BOOTER::YELLOW("Pid\tProcess\t\tState\t\tSwitch\t\tCycles");
+                    cout << endl;   // 6
+
+                    // for ()
+
+                    cout << "\33[u"; // 恢复光标
+                    cout << "\33[s"; // 保存光标
+
+                    BOOTER::wait(1000); // 等待 1 s
+
+                    for (unsigned int i = 0; i < 6 + info.size(); i++) {
+                        cout << "\33[K\33[B";
+                    }
+                    cout << "\33[u"; // 恢复光标
+                }
+                cout << "\33[?25h";  // 显示光标
             }
         } else if (Op == "shutdown" || Op == "quit" || Op == "exit") {
             // 退出 shell
             break;
+        } else if (Op.find(".fse") != std::string::npos) {
+            // 可执行文件
+            if (!args.empty())
+                invalid_args();
+            else {
+                std::string relativePath = appendPath(Op, false);
+                if (!FS::getInstance()->isExist(relativePath)) {
+                    no_such_file_or_directory(Op);
+                } else if (!FS::getInstance()->isFile(relativePath)) {
+                    BOOTER::ERROR("'" + Op + "' is a directory");
+                } else {
+                    unsigned char err = 1;
+                    int pid;
+                    //  pid = OSCore::getInstance()->createProcess(relativePath, err);
+                    if (err != 0) {
+                        BOOTER::ERROR("file '" + Op + "' is not a valid executable format");
+                    } else {
+                        BOOTER::SUCCESS("'" + Op + "' is running as a new process (PID = " + std::to_string(pid) + ")");
+                    }
+                }
+            }
+        } else if (Op == "compile") {
+            // 编译程序
+            if (args.size() != 1 && args.size() != 2)
+                invalid_args();
+            else {
+                std::string sourceFile = appendPath(args[0], false);
+                int code = 1;
+                if (args.size() == 1) {
+                    // code = FASM::getInstance()->exec(sourceFile.c_str());
+                } else {
+                    std::string dstFile = appendPath(args[1], false);
+                    // code = FASM::getInstance()->exec(sourceFile.c_str(), dstFile.c_str());
+                }
+                if (code == 0) {
+                    BOOTER::SUCCESS("'" + args[0] + "' has been compiled");
+                } else {
+                    BOOTER::ERROR("lexical error in '" + args[0] + "'");
+                }
+            }
         } else {
             // 找不到命令
             BOOTER::ERROR("command not found: " + Op);

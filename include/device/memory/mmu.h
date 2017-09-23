@@ -72,6 +72,7 @@ public:
     void freeSystemMemory(unsigned long logicalAddress, unsigned long size);
 
     unsigned long getSystemUsedSize();
+    unsigned long getCapacity() { return mCapacity; }
 
     // 为进程分配堆空间
     unsigned long allocUserMemory(unsigned int pid, unsigned long size, unsigned long start = 0);

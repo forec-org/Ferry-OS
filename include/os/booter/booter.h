@@ -23,7 +23,7 @@ public:
     static void YELLOW(const std::string &msg);
     static void BACKGROUND();
     static void CLEAR();
-    static void SUCCESS(const std::string &msg = "SUCCESS");
+    static void SUCCESS(const std::string &msg = "[SUCCESS]");
     static void SHOW_CURSOR();
     static void LOGO();
     static void RUN();

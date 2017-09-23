@@ -21,12 +21,16 @@ set(
         test_config/test_config_parser.cpp
         test_memory/test_mmu.cpp
         test_fs/test_fs.cpp
-        ../include/os/shell/shell.h)
+        test_printer/test_printer.cpp
+        test_voicer/test_voicer.cpp
+)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/config
         ${PROJECT_SOURCE_DIR}/include/device/memory
         ${PROJECT_SOURCE_DIR}/include/device/fs
+        ${PROJECT_SOURCE_DIR}/include/device/printer
+        ${PROJECT_SOURCE_DIR}/include/device/voicer
 )
 
 link_directories(
@@ -37,8 +41,21 @@ add_executable(runUnitTests gtest.cpp ${test_SRCS})
 
 # add all library below
 target_link_libraries(runUnitTests config ${Boost_LIBRARIES})
-target_link_libraries(runUnitTests memory)
-target_link_libraries(runUnitTests fs)
+target_link_libraries(
+        runUnitTests
+        memory
+        booter
+        printer
+        voicer
+        interrupter
+        oscore
+        timer
+        processor
+        fs
+        shell
+        scheduler
+)
+
 target_link_libraries(runUnitTests gtest gtest_main)
 target_link_libraries(runUnitTests gmock gmock_main)
 #add_test(runUnitTests runUnitTests)

@@ -11,6 +11,11 @@
 #include "mmu.h"
 #include "shell.h"
 #include <thread>
+#include "OSCore.h"
+#include "processor.h"
+#include "interrupter.h"
+#include "timer.h"
+
 
 using namespace std;
 using namespace boost::filesystem;
@@ -39,7 +44,7 @@ void BOOTER::SHOW_CURSOR() {
 }
 
 void BOOTER::SUCCESS(const std::string &msg) {
-    cout << "  \033[36m[" << msg << "]"; // 绿色成功
+    cout << "  \033[36m" << msg << ""; // 绿色成功
     CLEAR();
     cout << endl;
     BACKGROUND();
@@ -116,15 +121,17 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
         cout << endl;
         return;
     }
-/*
+    IntController::getInstance()->init();
+    Timer::getInstance()->init();
+
     loading(3, 5, 100);
     SUCCESS();
     wait(400);
-*/
+
     // 加载文件系统
     cout << "DETECTING FILE SYSTEM ";
     FS::init(Config::getInstance()->DISK.ROOT_PATH);
-/*
+
     loading(1, 14, 120);
     SUCCESS();
     cout << "FINDING ONE HDD DISK: " << endl;
@@ -135,12 +142,12 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     cout << "    DISK SIZE: " << FS::getInstance()->getDirectorySize("") << " B(USED)/ " <<
          Config::getInstance()->DISK.BLOCK_SIZE * Config::getInstance()->DISK.BLOCK_COUNT << " B(TOTAL)" << endl << endl;
     wait(300);
-*/
+
     // 加载内存
     cout << "VERIFYING MEMORY VALIDATION ";
     MMU::init(Config::getInstance()->MEM.DEFAULT_CAPACITY);
 
-/*
+
     loading(1, 8, 100);
     SUCCESS();
     cout << "FINDING ONE RAM: " << endl;
@@ -153,6 +160,8 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     SUCCESS();
 
     cout << "DETECTING CPU INFO  ";
+    Processor::getInstance()->init();
+    OSCore::getInstance()->init();
     loading(1, 10, 30);
     SUCCESS();
     cout << "FIND ONE PROCESSOR: " << endl;
@@ -165,28 +174,28 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     cout << "LOADING Ferry OS  ";
     loading(1, 10, 150);
     SUCCESS();
-*/
+
 
     // 创建 shell
     auto *shell = new Shell(Config::getInstance()->DISK.ROOT_PATH);
 
     // 启动 OS
-    // std::thread osThread = std::thread([](OSCore *os){ os->run(); }, os);
+    std::thread osThread = std::thread([](){ OSCore::getInstance()->start(); });
 
-/*
+
     loading(1, 10, 40, '>');
     loading(1, 20, 200, '>');
     loading(1, 10, 300, '>');
     loading(1, 30, 80, '>');
     cout << endl;
     system("clear");
-*/
+
 
     CLEAR();
     // 启动 shell
     shell->run();
+    osThread.detach();
     delete shell;
-
 }
 
 void BOOTER::shutdown() {
@@ -197,21 +206,27 @@ void BOOTER::shutdown() {
     cout << endl;
 
     string s0 = "WAITING FOR ALL PROCESSES STOP ";
+    Processor::release();
     cout << s0;
     loading(1, 50 - s0.length(), 40, '>');
     SUCCESS();
 
     string s1 = "CLEARING USER PROCESSES AND MEMORY ";
+    MMU::destroy();
     cout << s1;
     loading(1, 50 - s1.length(), 70, '>');
     SUCCESS();
 
     string s2 = "CLEARING SYSTEM MEMORY ";
+    FS::destroy();
     cout << s2;
     loading(1, 50 - s2.length(), 45, '>');
     SUCCESS();
 
     string s3 = "SHUTING DOWN ";
+    OSCore::release();
+    Timer::release();
+    IntController::release();
     cout << s3;
     loading(1, 50 - s3.length(), 80, '>');
     SUCCESS();

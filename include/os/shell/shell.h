@@ -14,11 +14,13 @@ private:
     std::string mCurrentPath;
     std::string mBasePath;
     std::vector<std::string> commands;
+    long long int lastPosition;
 public:
     explicit Shell(const std::string &basePath) {
         commands.clear();
         this->mBasePath = basePath;
         mCurrentPath = "/";
+        lastPosition = 0;
         commands.emplace_back("touch");
         commands.emplace_back("mkdir");
         commands.emplace_back("cp");
@@ -39,8 +41,10 @@ public:
         commands.emplace_back("cat");
         commands.emplace_back("head");
         commands.emplace_back("tail");
+        commands.emplace_back("compile");
     }
     void reload(const std::string &basePath) {
+        lastPosition = 0;
         mCurrentPath = "/";
         mBasePath = basePath;
     }

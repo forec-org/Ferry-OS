@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(SDOS)
+project(FerryOS)
 message(STATUS "Project: Software Defined Operating System")
 message(STATUS "Project Directory: ${PROJECT_SOURCE_DIR}")
 

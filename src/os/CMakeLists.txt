@@ -1,2 +1,4 @@
 add_subdirectory(booter)
 add_subdirectory(shell)
+add_subdirectory(oscore)
+add_subdirectory(scheduler)

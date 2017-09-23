@@ -1,28 +1,28 @@
-//
-// Created by 王耀 on 2017/9/15.
-//
+#pragma once
 
-#ifndef SDOS_TIMER_H
-#define SDOS_TIMER_H
+#include <thread>
 
+class IntController;
+
+//	模拟硬件定时器
 class Timer {
+	static Timer *gInstance;
+
 private:
-    bool m_started;
-    bool m_ticking;
-    bool m_ready;
-    long m_tick;
-    long m_bound;
-    int m_priority;
-    void (*m_callback)(void *args, void *result = nullptr);
-    void ticking();
+	bool			done;
+	std::thread		mThread;
+
+	IntController	*mIntCtrl;					//中断控制器引用
+
 public:
-    Timer(int priority);
-    ~Timer();
-    void init(long bound, void (*callback)(void *args, void *result = nullptr));
-    void start();
-    void pause();
-    void resume();
-    void stop();
+	Timer();
+	~Timer();
+
+	void			init();
+
+	void			exec();
+
+	static Timer *getInstance();
+	static void release();
 };
 
-#endif //SDOS_TIMER_H

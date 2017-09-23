@@ -9,6 +9,19 @@ link_directories(
         ${LIBRARY_OUTPUT_PATH}
 )
 
-add_executable(sdos ${SRC_LIST})
-target_link_libraries(sdos config ${Boost_LIBRARIES})
-target_link_libraries(sdos memory fs booter shell)
+add_executable(ferry ${SRC_LIST})
+target_link_libraries(ferry config ${Boost_LIBRARIES})
+target_link_libraries(
+        ferry
+        memory
+        fs
+        booter
+        shell
+        printer
+        voicer
+        timer
+        processor
+        oscore
+        interrupter
+        scheduler
+)

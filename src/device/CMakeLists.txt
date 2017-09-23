@@ -1,5 +1,7 @@
 add_subdirectory(fs)
 add_subdirectory(memory)
 add_subdirectory(printer)
+add_subdirectory(voicer)
 add_subdirectory(processor)
+add_subdirectory(interrupter)
 add_subdirectory(timer)

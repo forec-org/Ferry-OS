@@ -1,8 +1,8 @@
-set(SRC_LIST timer.cpp)
+set(SRC_LIST interrupter.cpp)
+
 include_directories(
-        ${PROJECT_SOURCE_DIR}/include/device/timer
         ${PROJECT_SOURCE_DIR}/include/device/interrupter
         ${PROJECT_SOURCE_DIR}/include/config
 )
 
-add_library(timer STATIC ${SRC_LIST})
+add_library(interrupter STATIC ${SRC_LIST})

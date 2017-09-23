@@ -101,7 +101,7 @@ uint8_t ProcessTableItem::readByte(unsigned long logicalAddress) {
     }
 
     // 读取的页已在内存中，将物理地址以指针方式返回
-    return *(uint8_t *)pti->second->getPhysicalAddress();
+    return *(uint8_t *)(pti->second->getPhysicalAddress() + (logicalAddress & ((1 << BIT) - 1)));
 }
 
 uint32_t ProcessTableItem::readHalfWord(unsigned long logicalAddress) {
@@ -133,7 +133,7 @@ uint32_t ProcessTableItem::readHalfWord(unsigned long logicalAddress) {
     }
 
     // 读取的页已在内存中，将物理地址以指针方式返回
-    return *(uint32_t *)pti->second->getPhysicalAddress();
+    return *(uint32_t *)(pti->second->getPhysicalAddress() + (logicalAddress & ((1 << BIT) - 1)));
 }
 
 uint64_t ProcessTableItem::readWord(unsigned long logicalAddress) {
@@ -164,7 +164,7 @@ uint64_t ProcessTableItem::readWord(unsigned long logicalAddress) {
     }
 
     // 读取的页已在内存中，将物理地址以指针方式返回
-    return *(uint64_t *)pti->second->getPhysicalAddress();
+    return *(uint64_t *)(pti->second->getPhysicalAddress() + (logicalAddress & ((1 << BIT) - 1)));
 }
 
 

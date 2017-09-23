@@ -74,7 +74,7 @@ FS::~FS() {
 }
 
 std::string FS::getBasePath() {
-    return std::string(mBasePath.c_str());
+    return mBasePath.string();
 }
 
 std::string FS::getPath(const std::string &path) {

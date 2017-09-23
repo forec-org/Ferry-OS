@@ -27,6 +27,7 @@ void BOOTER::wait(unsigned int mseconds) {
 
 void BOOTER::CLEAR() {
     cout << "\033[0m";
+    cout << "\033[?25h";
 }
 
 void BOOTER::BACKGROUND() {
@@ -48,26 +49,22 @@ void BOOTER::ERROR(const std::string &msg) {
     cout << "\033[31mERROR: " << msg;    // 红色错误
     CLEAR();
     cout << endl;
-    BACKGROUND();
 }
 
 void BOOTER::WARNING(const std::string &msg) {
     cout << "\033[33mWARNING: " << msg;  // 黄色警告
     CLEAR();
     cout << endl;
-    BACKGROUND();
 }
 
 void BOOTER::RED(const std::string &msg) {
     cout << "\033[31m" << msg;    // 红色字体
     CLEAR();
-    BACKGROUND();
 }
 
 void BOOTER::YELLOW(const std::string &msg) {
     cout << "\033[33m" << msg;  // 黄色字体
     CLEAR();
-    BACKGROUND();
 }
 
 void BOOTER::loading(unsigned int round, unsigned int count, unsigned int interval, char code) {
@@ -105,6 +102,7 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     BACKGROUND();
     if (!exists(configPath)) {
         WARNING("CONFIG FILE '" + configPath + "' IS NOT EXIST!");
+        BACKGROUND();
         cout << "TRY TO BOOT WITH DEFAULT CONFIG!" << endl << endl;
     }
 
@@ -112,7 +110,9 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     cout << "LOADING VIRTUAL MACHINE CONFIG ";
     if (!Config::init(configPath, debug)) {
         ERROR("VIRTUAL MACHINE IS UNABLE TO BOOT WITH CONFIG FILE '" + configPath + "'!");
+        BACKGROUND();
         WARNING("VIRTUAL MACHINE IS GOING TO SHUTDOWN ...");
+        BACKGROUND();
         cout << endl;
         return;
     }
@@ -181,6 +181,8 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     cout << endl;
     system("clear");
 */
+
+    CLEAR();
     // 启动 shell
     shell->run();
     delete shell;
@@ -188,6 +190,7 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
 }
 
 void BOOTER::shutdown() {
+    BACKGROUND();
     system("clear");
 
     LOGO();
@@ -212,7 +215,7 @@ void BOOTER::shutdown() {
     cout << s3;
     loading(1, 50 - s3.length(), 80, '>');
     SUCCESS();
-    wait(1000);
+    wait(800);
     cout << "GOOD BYE!" << endl;
     SHOW_CURSOR();
     CLEAR();

@@ -1,0 +1,18 @@
+Str printstr "Ferry OS"
+Int counter
+
+Func printloop
+{
+	mov counter, 0
+	
+loopstart:
+	Push printstr
+	CallCore printer
+	Add counter, 1
+	Jne counter, 10, loopstart 
+}
+
+Func main
+{
+	Call printloop
+}

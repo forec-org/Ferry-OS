@@ -122,6 +122,11 @@ std::string Shell::appendPath(const std::string &path, bool absolute) {
     string np = path;
     while (np.find(' ') == 0)
         np = np.substr(1);
+//    if (np.find('/') == 0) {
+//        while (np.find('/') == 0)
+//            np = np.substr(1);
+//        return np;
+//    }
     // 处理 . 和 ..
     string first = "";
     do {

@@ -1,10 +1,10 @@
 #include "OSPcbManager.h"
-#include "OSPcb.h"
+#include "config.h"
 
 OSPcbManager* OSPcbManager::gInstance = NULL;
 
 OSPcbManager::OSPcbManager() {
-	for (int index = 0; index < OS_MAX_PCB; ++index) {
+	for (int index = 0; index < Config::getInstance()->OS.MAXIMUM_TASKS; ++index) {
 		mCreated[index] = FALSE;
 	}
 	mProcCtr = 0;
@@ -14,14 +14,14 @@ OSPcbManager::~OSPcbManager() {
 }
 
 void OSPcbManager::init() {
-	for (UINT16 index = 0; index < OS_MAX_PCB; ++index) {
+	for (UINT16 index = 0; index < Config::getInstance()->OS.MAXIMUM_TASKS; ++index) {
 		mPcbs[index].setPid(index + 1);
 		mFreeList.push_back(&mPcbs[index]);
 	}
 }
 
 void OSPcbManager::getProcStates(std::vector<ProcState>& info) {
-	for (UINT32 index = 0; index < OS_MAX_PCB; ++index) {
+	for (UINT32 index = 0; index < Config::getInstance()->OS.MAXIMUM_TASKS; ++index) {
 		if (mCreated[index]) {
 			ProcState state;
 			state.pid = mPcbs[index].getPid();
@@ -40,7 +40,7 @@ UINT16 OSPcbManager::getProcNum() {
 }
 
 BOOLEAN OSPcbManager::isCreated(UINT16 pid) {
-	if (pid > OS_MAX_PCB) {
+	if (pid > Config::getInstance()->OS.MAXIMUM_TASKS) {
 		return FALSE;
 	}
 	return mCreated[pid - 1];
@@ -62,7 +62,7 @@ void OSPcbManager::release() {
 }
 
 OSPcb * OSPcbManager::getFreePCB(UINT8 & err) {
-	if (mProcCtr == OS_MAX_PCB) {
+	if (mProcCtr == Config::getInstance()->OS.MAXIMUM_TASKS) {
 		err = ERR_NO_FREE_PCB;
 		return NULL;
 	}

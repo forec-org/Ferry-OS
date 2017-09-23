@@ -1,7 +1,7 @@
 #include "timer.h"
 #include "interrupter.h"
-#include "SystemConfig.h"
 #include <iostream>
+#include "config.h"
 
 Timer *Timer::gInstance = nullptr;
 
@@ -24,7 +24,7 @@ void Timer::init() {
 void Timer::exec() {
 	while (!done) {
 		mIntCtrl->setIntReq(0);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / OS_TICKS_PER_SEC));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / Config::getInstance()->OS.TICKS_PER_SEC));
 	}
 }
 

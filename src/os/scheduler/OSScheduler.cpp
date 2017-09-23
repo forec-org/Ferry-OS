@@ -1,6 +1,6 @@
+#include <config.h>
 #include "OSScheduler.h"
 #include "OSPcbManager.h"
-#include "SystemConfig.h"
 #include "OSPcb.h"
 
 OSScheduler* OSScheduler::gInstance = NULL;
@@ -32,12 +32,12 @@ void OSScheduler::sched() {
 	if (!getNextToRun()) {								//如果当前就绪队列中没有进程
 		OSDebugStrn("sched do not find to run pcb", 3);
 		if (mPcbCurr) {									//如果当前有进程执行，就继续执行
-			mPcbCurr->delay(OS_TICKS_PER_SCHED);
+			mPcbCurr->delay(Config::getInstance()->OS.TICKS_PER_SCHED);
 			return;
 		}
 		mPcbCurr = mIdlePcb;							//否则启动空转进程
 		mPcbCurr->setState(PROC_STATE_RUNNING);
-		mPcbCurr->delay(OS_TICKS_PER_SCHED);
+		mPcbCurr->delay(Config::getInstance()->OS.TICKS_PER_SCHED);
 		return;
 	}
 
@@ -51,7 +51,7 @@ void OSScheduler::sched() {
 	} 
 	mPcbCurr = mNextToRun;								//替换为将要执行的进程
 	mPcbCurr->setState(PROC_STATE_RUNNING);
-	mPcbCurr->delay(OS_TICKS_PER_SCHED);
+	mPcbCurr->delay(Config::getInstance()->OS.TICKS_PER_SCHED);
 	mPcbCurr->incSwitchCtr();							//被调度次数递增
 	OSDebugStr("sched proc in, pid:", 3);
 	OSDebugIntn(mPcbCurr->getPid(), 3);

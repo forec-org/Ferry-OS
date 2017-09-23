@@ -8,6 +8,7 @@
 #include "mmu.h"
 #include "printer.h"
 #include "voicer.h"
+#include "config.h"
 
 
 OSCore *OSCore::gInstance = NULL;
@@ -76,7 +77,7 @@ UINT8 OSCore::loadExecFile(const char *path, OSPcb * pcb, UINT32 base) {
 
 	BYTE buffer[1024 * 512];												//读文件缓冲区
 
-	if (!strstr(path, EXEC_FILE_EXT)) {										//检查可执行文件后缀
+	if (!strstr(path, Config::getInstance()->OS.EXEC_FILE_EXT.c_str())) {		//检查可执行文件后缀
 		return ERR_INVALID_FSE;
 	}
 
@@ -95,7 +96,7 @@ UINT8 OSCore::loadExecFile(const char *path, OSPcb * pcb, UINT32 base) {
 		return ERR_INVALID_VERSION;
 	}
 	if (header.stackSize == 0) {											//判断堆栈大小
-		header.stackSize = DEF_STACK_SIZE;									
+		header.stackSize = (Config::getInstance()->MEM.DEFAULT_STACK_PAGE << Config::getInstance()->MEM.DEFAULT_PAGE_BIT);
 	}
 
 	//fread((void*)&instrNum, sizeof(int), 1, pExecFile);						//读取指令数量
@@ -664,8 +665,8 @@ void OSCore::timeTick() {
 	}
 
 	mTime++;
-	if (mTime % OS_TICKS_PER_SEC == 0) {				//计算空闲时间
-		UINT32 hz = CPU_RATE_M;
+	if (mTime % Config::getInstance()->OS.TICKS_PER_SEC == 0) {				//计算空闲时间
+		UINT32 hz = Config::getInstance()->CPU.CPU_RATE;
 		mCPUUsage = (F32)(hz - mFreeTime) / (F32)hz;
 		clearFreeTime();
 	}

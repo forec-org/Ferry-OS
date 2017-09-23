@@ -6,7 +6,7 @@
 #define SDOS_MACRO_H
 
 #define _CPU_CORE_NUM 2
-#define _CPU_CPU_RATE 1.0
+#define _CPU_CPU_RATE 5                    // Hz
 
 #define _DISK_ROOT_PATH "./fs"             // 上层文件系统根目录
 #define _DISK_BLOCK_SIZE 512               // Byte  硬盘块大小
@@ -29,5 +29,9 @@
 #define _OS_BOOT_MEMORY_KB 512             // KByte  操作系统引导区内存大小
 #define _OS_MAXIMUM_TASKS 64               // 操作系统能够支持的最大进程数
 #define _OS_MAXIMUM_TASK_PAGE (_MEM_DEFAULT_CAPACITY << 1)          // Page  每个进程能使用的最大虚拟内存大小
+#define _OS_EXEC_FILE_EXT ".FSE"           // 可执行文件后缀
+#define _OS_TICKS_PER_SEC 2                // 每秒时钟中断数
+#define _OS_TICKS_PER_SCHED 5              // 调度频率
+#define _OS_MAX_SEM 64                     // 最多可支持信号量数量
 
 #endif //SDOS_MACRO_H

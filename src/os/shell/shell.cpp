@@ -18,7 +18,57 @@
 #include <cstdlib>
 #include "compiler.h"
 #include "OSCore.h"
+#include <unistd.h>
 
+
+static struct termios initial_settings, new_settings;
+static int peek_character = -1;
+
+void init_keyboard() {
+    tcgetattr(0, &initial_settings);
+    new_settings = initial_settings;
+    new_settings.c_lflag &= ~ICANON;
+    new_settings.c_lflag &= ~ECHO;
+    new_settings.c_lflag &= ~ISIG;
+    new_settings.c_cc[VMIN] = 1;
+    new_settings.c_cc[VTIME] = 0;
+    tcsetattr(0,TCSANOW, &new_settings);
+}
+
+void close_keyboard() {
+    tcsetattr(0,TCSANOW, &initial_settings);
+}
+
+int kbhit() {
+    char ch;
+    int nread;
+
+    if(peek_character != -1) {
+        return -1;
+    }
+    new_settings.c_cc[VMIN] = 0;
+    tcsetattr(0, TCSANOW, &new_settings);
+    nread = read(0, &ch, 1);
+    new_settings.c_cc[VMIN] = 1;
+    tcsetattr(0,TCSANOW, &new_settings);
+
+    if(nread == 1) {
+        peek_character = ch;
+        return 1;
+    }
+    return 0;
+}
+
+int readch() {
+    char ch;
+    if(peek_character != -1) {
+        ch = peek_character;
+        peek_character = -1;
+        return ch;
+    }
+    read (0, &ch, 1);
+    return ch;
+}
 
 int getkey() {
     int character;
@@ -257,6 +307,9 @@ void Shell::run() {
     stateMap.emplace_back("SWAPPED_WAITING");
     stateMap.emplace_back("SWAPPED_SUSPEND");
 
+    std::string extension = Config::getInstance()->OS.EXEC_FILE_EXT;
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
     for (;;) {
         command.clear();
         std::cout << mCurrentPath << ">";
@@ -405,6 +458,7 @@ void Shell::run() {
             }
         } else if (Op == "watch") {
             // 查看输出
+            unsigned int time = 0;
             bool cont = true;
             if (!args.empty() && args[1] == "-c") {
                 cont = false;
@@ -422,27 +476,12 @@ void Shell::run() {
             std::ifstream reader;
             string lineLog;
 
-            std::atomic<bool> quit(false);
-            std::thread listenKey = std::thread([](std::atomic<bool> *q) {
-                int key;
-                while (!(*q)) {
-                    key = getkey();
-                    if (key != -1)
-                        cout << "You input " << key << endl;
-                    if (key == 27 || key == 'q' || key == 'Q' || key == 0x04) {// CTRL+D
-                        *q = true;
-                        break;
-                    }
-                }
-            }, &quit);
-            listenKey.detach();
-
             // 从上次看过处继续
             if (cont) {
                 lastPos = lastPosition;
             }
 
-            while (!quit) {
+            while (time++ < 20) {
                 reader.open(FS::getInstance()->getPath(".console"), ios::in);
                 if (reader.fail()) {
                     BOOTER::ERROR("system console is locked");
@@ -480,9 +519,8 @@ void Shell::run() {
                 }
                 lastPosition = temp;
                 reader.close();
-                BOOTER::wait(600);
+                BOOTER::wait(500);
             }
-            quit = true;
         } else if (Op == "vi" || Op == "nano") {
             if (args.size() != 1) {
                 invalid_args();
@@ -585,6 +623,7 @@ void Shell::run() {
                 cout << "\33[?25l";  // 隐藏光标
                 unsigned int time = 0;
                 while (time++ < 10) {
+                    system("clear");
                     cout << "\33[s";   // 保存光标位置
 
                     // 获得进程信息
@@ -684,7 +723,7 @@ void Shell::run() {
         } else if (Op == "shutdown" || Op == "quit" || Op == "exit") {
             // 退出 shell
             break;
-        } else if (Op.find(".fse") != std::string::npos) {
+        } else if (Op.find(extension) != std::string::npos) {
             // 可执行文件
             if (!args.empty())
                 invalid_args();

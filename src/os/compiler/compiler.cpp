@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include "fasmconfig.h"
+#include "config.h"
 #include "fs.h"
 
 FASM *FASM::gInstance = nullptr;
@@ -74,10 +75,10 @@ void FASM::SetSourceFileName(const std::string &srcFileName, const std::string &
 
 		// Check for the presence of the .XSE extension and add it if it's not there
 
-		if (!strstr(g_pstrExecFilename, EXEC_FILE_EXT)) {
+		if (!strstr(g_pstrExecFilename, Config::getInstance()->OS.EXEC_FILE_EXT.c_str())) {
 			// The extension was not found, so add it to string
 
-			strcat(g_pstrExecFilename, EXEC_FILE_EXT);
+			strcat(g_pstrExecFilename, Config::getInstance()->OS.EXEC_FILE_EXT.c_str());
 		}
 	}
 	else {
@@ -94,7 +95,7 @@ void FASM::SetSourceFileName(const std::string &srcFileName, const std::string &
 
 		// Append executable extension
 
-		strcat(g_pstrExecFilename, EXEC_FILE_EXT);
+		strcat(g_pstrExecFilename, Config::getInstance()->OS.EXEC_FILE_EXT.c_str());
 	}
 }
 

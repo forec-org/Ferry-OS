@@ -1,72 +1,70 @@
 #pragma once
 
-//----²Ù×÷ÊıÀàĞÍ---------------------------------------------------------------------
+//----æ“ä½œæ•°ç±»å‹---------------------------------------------------------------------
 
-#define OP_TYPE_nullptr             -1          // ¿ÕÊı¾İ
-#define OP_TYPE_INT					0			//ÕûĞÎ×ÖÃæ³£Á¿Öµ
-#define OP_TYPE_PTR					1			//ÕûĞÎÖ¸Õë
-#define OP_TYPE_STRING_REF			2			//×Ö·û´®Ë÷Òı
-#define OP_TYPE_ABS_STACK_INDEX		3			//¾ø¶Ô¶ÑÕ»Ë÷Òı
-#define OP_TYPE_REL_STACK_INDEX		4			//Ïà¶Ô¶ÑÕ»Ë÷Òı
-#define OP_TYPE_INSTR_INDEX			5			//Ö¸ÁîË÷Òı
-#define OP_TYPE_FUNC_INDEX			6			//º¯ÊıË÷Òı
-#define OP_TYPE_HOST_API_CALL_INDEX	7			//Ö÷Ó¦ÓÃ³ÌĞòAPIµ÷ÓÃË÷Òı
-#define OP_TYPE_REG					8			//¼Ä´æÆ÷
+#define OP_TYPE_nullptr             -1          // ç©ºæ•°æ®
+#define OP_TYPE_INT					0			//æ•´å½¢å­—é¢å¸¸é‡å€¼
+#define OP_TYPE_PTR					1			//æ•´å½¢æŒ‡é’ˆ
+#define OP_TYPE_STRING_REF			2			//å­—ç¬¦ä¸²ç´¢å¼•
+#define OP_TYPE_ABS_STACK_INDEX		3			//ç»å¯¹å †æ ˆç´¢å¼•
+#define OP_TYPE_REL_STACK_INDEX		4			//ç›¸å¯¹å †æ ˆç´¢å¼•
+#define OP_TYPE_INSTR_INDEX			5			//æŒ‡ä»¤ç´¢å¼•
+#define OP_TYPE_FUNC_INDEX			6			//å‡½æ•°ç´¢å¼•
+#define OP_TYPE_HOST_API_CALL_INDEX	7			//ä¸»åº”ç”¨ç¨‹åºAPIè°ƒç”¨ç´¢å¼•
+#define OP_TYPE_REG					8			//å¯„å­˜å™¨
 
-//----Ö¸Áî²Ù×÷Âë---------------------------------------------------------------------
+//----æŒ‡ä»¤æ“ä½œç ---------------------------------------------------------------------
 
-#define INSTR_MOV                   0			//¸³ÖµÖ¸Áî
+#define INSTR_MOV                   0			//èµ‹å€¼æŒ‡ä»¤
 
-#define INSTR_ADD                   1			//ÔËËãÖ¸Áî
+#define INSTR_ADD                   1			//è¿ç®—æŒ‡ä»¤
 #define INSTR_SUB                   2
 #define INSTR_MUL                   3
 #define INSTR_DIV                   4
 
-#define INSTR_JMP                   5			//Ìø×ªÖ¸Áî
+#define INSTR_JMP                   5			//è·³è½¬æŒ‡ä»¤
 #define INSTR_JE                    6
 #define INSTR_JNE                   7
 #define INSTR_JG                    8
 #define INSTR_JL                    9
 
-#define INSTR_PUSH                  10			//¶ÑÕ»Ö¸Áî
+#define INSTR_PUSH                  10			//å †æ ˆæŒ‡ä»¤
 #define INSTR_POP                   11
 
-#define INSTR_CALL                  12			//µ÷ÓÃÖ¸Áî
+#define INSTR_CALL                  12			//è°ƒç”¨æŒ‡ä»¤
 #define INSTR_RET                   13
 #define INSTR_IRET					14
 #define INSTR_CALLCORE              15
 
-#define INSTR_PAUSE                 16			//¿ØÖÆÖ¸Áî
+#define INSTR_PAUSE                 16			//æ§åˆ¶æŒ‡ä»¤
 #define INSTR_QUIT                  17
 
-//----cpuÅäÖÃ----------------------------------------------------------------------
+//----cpué…ç½®----------------------------------------------------------------------
 
-#define INSTR_LEN	32							//Ö¸Áî³¤¶È
+#define INSTR_LEN	32							//æŒ‡ä»¤é•¿åº¦
 
-#define CPU_RATE_M	5							//cpuÆµÂÊ
+//----ç»“æ„ä½“-----------------------------------------------------------------------
 
-//----½á¹¹Ìå-----------------------------------------------------------------------
-
-//²Ù×÷Êı
+//æ“ä½œæ•°
 typedef struct _op {			
-	int iType;									//²Ù×÷ÊıÀàĞÍ
+	int iType;									//æ“ä½œæ•°ç±»å‹
 	union {
-		int iIntLiteral;						//ÕûĞÎ×ÖÃæÁ¿
-		float fFloatLiteral;					//¸¡µãĞÍ×ÖÃæÁ¿
-		int iStringTableIndex;					//×Ö·û´®±íË÷Òı
-		int iStackIndex;						//¶ÑÕ»Ë÷Òı
-		int iInstrIndex;						//Ö¸ÁîË÷Òı
-		int iFuncIndex;							//º¯ÊıË÷Òı
-		int iHostAPICallIndex;					//Ö÷Ó¦ÓÃ³ÌĞòAPIµ÷ÓÃË÷Òı
-		int iReg;								//¼Ä´æÆ÷Âë
+		int iIntLiteral;						//æ•´å½¢å­—é¢é‡
+		float fFloatLiteral;					//æµ®ç‚¹å‹å­—é¢é‡
+		int iStringTableIndex;					//å­—ç¬¦ä¸²è¡¨ç´¢å¼•
+		int iStackIndex;						//å †æ ˆç´¢å¼•
+		int iInstrIndex;						//æŒ‡ä»¤ç´¢å¼•
+		int iFuncIndex;							//å‡½æ•°ç´¢å¼•
+		int iHostAPICallIndex;					//ä¸»åº”ç”¨ç¨‹åºAPIè°ƒç”¨ç´¢å¼•
+		int iReg;								//å¯„å­˜å™¨ç 
 	};
-	int iOffsetIndex;							//Æ«ÒÆÁ¿Ë÷Òı£¬½öÔÚÊı¾İÀàĞÍÊÇ¶ÑÕ»Ë÷ÒıÊ±Ê¹ÓÃ£¬´æ´¢¶ÑÕ»Æ«ÒÆ
+	int iOffsetIndex;							//åç§»é‡ç´¢å¼•ï¼Œä»…åœ¨æ•°æ®ç±»å‹æ˜¯å †æ ˆç´¢å¼•æ—¶ä½¿ç”¨ï¼Œå­˜å‚¨å †æ ˆåç§»
 }Op;
 
-//Ö¸Áî
+//æŒ‡ä»¤
 typedef struct _instr {
-	unsigned short mOpCode;						//Ö¸Áî²Ù×÷Âë
-	unsigned char mOpNum;						//²Ù×÷ÊıÊıÁ¿
-	Op mOpList[4];								//Ö¸Áî²Ù×÷Êı
+	unsigned short mOpCode;						//æŒ‡ä»¤æ“ä½œç 
+	unsigned char mOpNum;						//æ“ä½œæ•°æ•°é‡
+	Op mOpList[4];								//æŒ‡ä»¤æ“ä½œæ•°
 }Instr;
 

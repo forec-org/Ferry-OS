@@ -25,7 +25,7 @@ public:
 
     struct CPU {
         unsigned int CORE_NUM;
-        double CPU_RATE;             // GHz
+        unsigned long CPU_RATE;             // GHz
     } CPU;
 
     struct DISK {
@@ -58,6 +58,10 @@ public:
         unsigned int BOOT_MEMORY_KB;            // KByte
         unsigned int MAXIMUM_TASKS;
         unsigned long MAXIMUM_TASK_PAGE;        // Page
+        std::string EXEC_FILE_EXT;              // extension
+        unsigned long TICKS_PER_SEC;            // Count
+        unsigned long TICKS_PER_SCHED;          // Count
+        unsigned long MAX_SEM;
     } OS;
 };
 

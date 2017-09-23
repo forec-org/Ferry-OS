@@ -1,4 +1,5 @@
 #include "OSSemManager.h"
+#include "config.h"
 
 OSSemManager *OSSemManager::gInstance = NULL;
 
@@ -10,7 +11,7 @@ OSSemManager::~OSSemManager() {
 }
 
 void OSSemManager::init() {
-	for (UINT16 index = 0; index < OS_MAX_SEM; ++index) {
+	for (UINT16 index = 0; index < Config::getInstance()->OS.MAX_SEM; ++index) {
 		mSems[index].setId(index);
 		mIsFree[index] = TRUE;
 		mFreeList.push_back(&mSems[index]);
@@ -38,7 +39,7 @@ void OSSemManager::returnSem(UINT16 id) {
 }
 
 OSSem * OSSemManager::getSem(UINT16 id) {
-	if (id >= OS_MAX_SEM) {
+	if (id >= Config::getInstance()->OS.MAX_SEM) {
 		return NULL;
 	}
 	if (mIsFree[id]) {

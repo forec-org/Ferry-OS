@@ -71,7 +71,7 @@ bool Config::reload() {
 
         /* CPU configuration */
         CPU.CORE_NUM = cpu.get<unsigned int>("CORE_NUM");
-        CPU.CPU_RATE = cpu.get<double>("CPU_RATE");
+        CPU.CPU_RATE = cpu.get<unsigned long>("CPU_RATE");
 
         /* DISK configuration */
         DISK.ROOT_PATH = disk.get<std::string>("ROOT_PATH");
@@ -99,6 +99,10 @@ bool Config::reload() {
         OS.BOOT_MEMORY_KB = os.get<unsigned int>("BOOT_MEMORY_KB");
         OS.MAXIMUM_TASKS = os.get<unsigned int>("MAXIMUM_TASKS");
         OS.MAXIMUM_TASK_PAGE = os.get<unsigned long>("MAXIMUM_TASK_PAGE");
+        OS.EXEC_FILE_EXT = os.get<std::string>("EXEC_FILE_EXT");
+        OS.TICKS_PER_SEC = os.get<unsigned long>("TICKS_PER_SEC");
+        OS.TICKS_PER_SCHED = os.get<unsigned long>("TICKS_PER_SCHED");
+        OS.MAX_SEM = os.get<unsigned long>("MAX_SEM");
 
     } catch (boost::property_tree::ptree_error &e) {
         if (Config::mShowErrorLog)
@@ -135,4 +139,8 @@ void Config::loadDefault() {
     OS.BOOT_MEMORY_KB = _OS_BOOT_MEMORY_KB;
     OS.MAXIMUM_TASKS = _OS_MAXIMUM_TASKS;
     OS.MAXIMUM_TASK_PAGE = _OS_MAXIMUM_TASK_PAGE;
+    OS.EXEC_FILE_EXT = _OS_EXEC_FILE_EXT;
+    OS.TICKS_PER_SEC = _OS_TICKS_PER_SEC;
+    OS.TICKS_PER_SCHED = _OS_TICKS_PER_SCHED;
+    OS.MAX_SEM = _OS_MAX_SEM;
 }

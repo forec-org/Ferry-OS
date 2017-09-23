@@ -4,6 +4,7 @@
 #include "mmu.h"
 #include "interrupter.h"
 #include <thread>
+#include "config.h"
 
 Processor *Processor::gInstance = NULL;
 
@@ -503,7 +504,7 @@ void Processor::exec() {
 
 		handleIrq();					//处理中断
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / CPU_RATE_M));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / Config::getInstance()->CPU.CPU_RATE));
 	}
 }
 

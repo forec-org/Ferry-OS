@@ -173,7 +173,7 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
     SUCCESS();
     cout << "FIND ONE PROCESSOR: " << endl;
     cout << "/proc/cpuinfo: " << endl;
-    cout << "    CPU RATE: " << Config::getInstance()->CPU.CPU_RATE << " GHz" << endl;
+    cout << "    CPU RATE: " << Config::getInstance()->CPU.CPU_RATE << " Hz" << endl;
     cout << "    CORE COUNT: " << Config::getInstance()->CPU.CORE_NUM << " CORE" <<  endl;
     cout << "    ARCHITECTURE: x86_f" << endl << endl;
 

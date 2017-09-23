@@ -228,8 +228,8 @@ public:
 	static void release();
 
 	//----调试用-----------------------------------------------------------
-#define DEBUG_ENABLE 1
-#define DEBUG_LEVEL 4
+#define DEBUG_ENABLE 0
+#define DEBUG_LEVEL 0
 	void FASMDebug(const char *tip, short level);
 	void FASMDebug(int tip, short level);
 

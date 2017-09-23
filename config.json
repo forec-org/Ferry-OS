@@ -1,7 +1,7 @@
 {
   "CPU": {
     "CORE_NUM": 2,
-    "CPU_RATE": 1.0
+    "CPU_RATE": 5
   },
   "DISK": {
     "ROOT_PATH": "./fs",
@@ -27,6 +27,10 @@
     },
     "BOOT_MEMORY_KB": 512,
     "MAXIMUM_TASKS": 64,
-    "MAXIMUM_TASK_PAGE": 4096
+    "MAXIMUM_TASK_PAGE": 4096,
+    "EXEC_FILE_EXT": ".FSE",
+    "TICKS_PER_SEC": 2,
+    "TICKS_PER_SCHED": 5,
+    "MAX_SEM": 64
   }
 }

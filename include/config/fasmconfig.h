@@ -5,7 +5,6 @@ namespace fasm {
 //#define MAX_FILENAME_SIZE			2048		//文件名最大长度
 
 #define SOURCE_FILE_EXT				".FASM"		//汇编源文件后缀
-#define EXEC_FILE_EXT				".FSE"		//可执行文件后缀
 
 	//----源文件属性-------------------------------------------------
 #define MAX_SOURCE_CODE_SIZE		65536		//源文件最大行数

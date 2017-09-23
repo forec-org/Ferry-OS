@@ -1,9 +1,9 @@
 #pragma once
 
 #include "OS.h"
-#include "SystemConfig.h"
 #include "OSSem.h"
 #include <list>
+#include "macro.h"
 
 typedef std::list<OSSem*> OSSemList;
 
@@ -11,8 +11,8 @@ class OSSemManager {
 	static OSSemManager *gInstance;
 
 private:
-	OSSem				mSems[OS_MAX_SEM];				//静态分配信号量
-	BOOLEAN				mIsFree[OS_MAX_SEM];			//判断信号量是否被创建
+	OSSem				mSems[_OS_MAX_SEM];				//静态分配信号量
+	BOOLEAN				mIsFree[_OS_MAX_SEM];			//判断信号量是否被创建
 	OSSemList			mFreeList;						//空闲列表
 
 	OSSemManager();

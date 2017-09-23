@@ -1,10 +1,10 @@
 #pragma once
 
 #include "OS.h"
-#include "SystemConfig.h"
 #include "OSPcb.h"
 #include <list>
 #include <vector>
+#include "macro.h"
 
 typedef std::list<OSPcb*> OSPcbList;
 
@@ -13,8 +13,8 @@ class OSPcbManager {
 
 private:
 	OSPcbList			mFreeList;						//空闲PCB列表
-	BOOLEAN				mCreated[OS_MAX_PCB];			//PCB分配情况
-	OSPcb				mPcbs[OS_MAX_PCB];				//PCB列表
+	BOOLEAN				mCreated[_OS_MAXIMUM_TASKS];			//PCB分配情况
+	OSPcb				mPcbs[_OS_MAXIMUM_TASKS];				//PCB列表
 	UINT16				mProcCtr;						//已创建任务计数
 
 	OSPcbManager();

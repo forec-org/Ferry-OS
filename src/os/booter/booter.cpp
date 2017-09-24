@@ -192,11 +192,11 @@ void BOOTER::boot(const std::string &configPath, bool debug) {
 
 
     width += 9;
-//    loading(1, width / 5, 40, '>');
-//    loading(1, width / 4, 200, '>');
-//    loading(1, width - (width / 2) - (width / 4) - (width / 5), 300, '>');
-//    loading(1, width / 2, 80, '>');
-//    cout << endl;
+    loading(1, width / 5, 40, '>');
+    loading(1, width / 4, 200, '>');
+    loading(1, width - (width / 2) - (width / 4) - (width / 5), 300, '>');
+    loading(1, width / 2, 80, '>');
+    cout << endl;
     system("clear");
 
 

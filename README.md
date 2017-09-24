@@ -41,6 +41,7 @@ Func main {
 * `vi` 和 `nano`：文本编辑，使用的是上层文件系统编辑器
 * `cat`、`head`、`tail`：与传统 Shell 中 `head` 不同的是，参数无需加 `-`，如 `head 10` 即可。
 * `shutdown`、`quit`、`exit`：关机 
+* `compile [SOURCE_FILE] [OUTPUT]`：将 FASM 源码编译为 FSE 可执行文件。
 
 # 编译及测试
 * Ferry OS 依赖 Boost 和 GoogleTest（测试），请保证依赖已安装。

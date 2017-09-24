@@ -91,7 +91,7 @@ TEST(MMUTest, MMU_USER_MEMORY) {
     // 分配 5 块用户内存后，已使用帧数应增加 5
     EXPECT_EQ(usedCount1 + 5, MMU::getInstance()->getUsedFrameCount());
 
-    // 堆栈指针应有变化
+    // 堆指针应有变化
     EXPECT_EQ(MMU::getInstance()->getProcess(pid1)->getHeapHeader(), address1 + PAGE * 3);
     EXPECT_EQ(MMU::getInstance()->getProcess(pid2)->getHeapHeader(), address2 + PAGE * 2);
 

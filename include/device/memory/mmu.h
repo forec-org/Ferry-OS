@@ -8,7 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include <stdint.h>
-#include "../../config/config.h"
+#include "config.h"
 #include "frame_table_item.h"
 #include "page_table.h"
 #include "process_table_item.h"

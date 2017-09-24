@@ -694,19 +694,19 @@ void Shell::run() {
                                 filename = filename.substr(0, filename.find(extention));
                         }
 
-                        unsigned int state = pro.state;
-                        unsigned int count = 0;
-                        while (state) {
-                            count ++;
-                            state >>= 1;
-                        }
-
-                        std::string stateStr = "UNKNOWN";
-                        if (state < stateMap.size())
-                            stateStr = stateMap[state];
+//                        unsigned int state = pro.state;
+//                        unsigned int count = 0;
+//                        while (state) {
+//                            count ++;
+//                            state >>= 1;
+//                        }
+//
+//                        std::string stateStr = "UNKNOWN";
+//                        if (state < stateMap.size())
+//                            stateStr = stateMap[state];
 
                         cout << pro.pid << "\t\t"
-                             << stateStr << "\t\t"
+                             << pro.state << "\t\t"
                              << pro.switchCnt << "\t\t"
                              << pro.totalCycles << "\t\t"
                              << filename

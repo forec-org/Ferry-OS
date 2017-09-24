@@ -1,7 +1,7 @@
 {
   "CPU": {
     "CORE_NUM": 2,
-    "CPU_RATE": 5
+    "CPU_RATE": 10
   },
   "DISK": {
     "ROOT_PATH": "./fs",
@@ -15,7 +15,7 @@
     "DEFAULT_BLOCKS_PER_FILE": 4
   },
   "MEM": {
-    "DEFAULT_CAPACITY": 1024,
+    "DEFAULT_CAPACITY": 128,
     "DEFAULT_PROCESS_PAGE": 16,
     "DEFAULT_STACK_PAGE": 2,
     "DEFAULT_PAGE_BIT": 20

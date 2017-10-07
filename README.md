@@ -2,7 +2,7 @@
 2017 操作系统课程设计，由 [@FlyingX](https://github.com/non1996) 和 [@Forec](http://forec.cn) 实现。在现有操作系统上层软件定义一个简单的单进程操作系统。
 通过软件模拟计算资源、内存管理、硬盘、外设等。Ferry OS 可以灵活的响应配置变化，支持虚拟内存。
 
-此外，[@FlyingX](https://github.com/non1996) 设计了 FASM 类汇编语言。他同时为 Ferry OS 编写了一个编译器，编译后的字节码可在 Ferry OS 模拟的虚拟机上运行。FASM 支持
+此外，[@FlyingX](https://github.com/non1996) 设计了一种类汇编语言。他同时为 Ferry OS 编写了一个编译器，编译后的字节码可在 Ferry OS 模拟的虚拟机上运行。该语言支持
 基本四则运算、函数定义和调用、条件分支、循环、系统调用等。
 
 Ferry OS 提供了基于现有底层文件系统的 Shell 交互界面，其使用方式与传统 Unix 风格控制台类似，支持基本的文件、目录操作以及一些其他常见命令。
@@ -11,7 +11,7 @@ Ferry OS 提供了基于现有底层文件系统的 Shell 交互界面，其使�
 
 # 支持
 * 硬件可配置化
-* FASM 编译器
+* FlyingX ASM 编译器
 * 信号量
 * 内存分页管理
 * 虚拟机内存动态分配
@@ -56,11 +56,11 @@ Func main {
 * Ferry OS 自带了一些可执行文件，位于 `fasm/bin` 目录下，`fasm/src` 中存放了部分 FASM 程序源码。
 * 界面的 Loading 都是靠延时做的，认真就输了。
 * 做的 Bug 多我们也很无奈，毕竟只有一星期。
-* 有任何问题欢迎联系 Forec 或 FlyingX，对 FASM 有问题请联系 FlyingX。
+* 有任何问题欢迎联系 Forec 或 FlyingX，对 FlyingX ASM 有问题请联系 FlyingX。
 
 # 已知问题
 * Shell 中对路径的支持有瑕疵（时间问题来不及修改），Ferry OS 的文件系统暂不支持绝对路径，只能相对当前路径操作。
-* FASM 编译器的跨平台支持。FlyingX 在 Windows 下开发了这个编译器，将其移植到 Forec 处整合时出现异常，在 Mac OS 无法正确解析，因此 Ferry OS 中预装的可执行文件均为 FlyingX 在 Windows 下编译后的文件。
+* FlyingX ASM 编译器的跨平台支持。FlyingX 在 Windows 下开发了这个编译器，将其移植到 Forec 处整合时出现异常，在 Mac OS 无法正确解析，因此 Ferry OS 中预装的可执行文件均为 FlyingX 在 Windows 下编译后的文件。
 
 # 许可证
 本仓库中的代码均受仓库中 [LICENSE](https://github.com/forec-org/Ferry-OS/blob/master/LICENSE) 声明的许可证保护。
